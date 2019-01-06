@@ -2,115 +2,20 @@
 
 //used by socket.io to allow client to connect to server, this must change
 //if domain changes, or when we move from dev server to live
-//var hostedAddress = "http://192.168.1.197";
-var hostedAddress = "http://quiz.chicosystems.com";
+var hostedAddress = "http://192.168.1.197";
+//var hostedAddress = "http://quiz.chicosystems.com";
 
 // load up the quizQestions model
-var QuizQuestion            = require('../models/quizQuestions');
-var Users                   = require('../models/user');
-var JQuestion               = require('../models/jQuestions');
-var ReportProblem           = require('../models/reportProblem');
-//var QuestionHistory         = require('../models/questionHistory');
-var ObjectId                = require('mongoose').Types.ObjectId;
+var Locations            = require('../models/locations');
 var util = require('util');
 
-//convert stanford questions
-var s_old_questions = require('../models/stanford_old');
-var StanfordQuestion        = require('../models/stanfordQuestions');
-
-//random weighted choice, used for difficulty settings
-var rwc                     = require('random-weighted-choice');
-var rwc0 = [
-  {weight: 94, id: 0},
-  {weight: 5, id: 1},
-  {weight: 1, id: 2}
-];
-
-var rwc1 = [
-  {weight: 79, id: 0},
-  {weight: 20, id: 1},
-  {weight: 1, id: 2}
-];
-
-var rwc2 = [
-  {weight: 48, id: 0},
-  {weight: 48, id: 1},
-  {weight: 2, id: 2}
-];
-
-var rwc3 = [
-  {weight: 20, id: 0},
-  {weight: 60, id: 1},
-  {weight: 20, id: 2}
-];
-
-var rwc4 = [
-  {weight: 5, id: 0},
-  {weight: 90, id: 1},
-  {weight: 5, id: 2}
-];
-
-var rwcTable = [];
-rwcTable.push(rwc0);
-rwcTable.push(rwc1);
-rwcTable.push(rwc2);
-rwcTable.push(rwc3);
-rwcTable.push(rwc4);
 
 module.exports = function(app, passport){
-  //=============================================
-  //Stanford Question Conversions
-  //============================================
-/*  app.get('/convertStanford', function(req, res){
-    s_old_questions.find({}, function(err, result){
-      if(err){
-        res.send({status: "error", message: err});
-      }else if(result == ""){
-        res.send({status: "error", message: "Question :"+req.params.id+" does not exist!"});
-      }else{
-        //console.log("question: " + result);
-        console.log("length: " +result.length);
-        console.log(result[1].title);
-        res.send(result[1]);
-        for(var i = 0; i < result.length; i++){
-          var category = result[i].title;
-          category = category.replace(/_/g, " "); //replace _ with space
-          console.log("category: " + category);
-          for(var j = 0; j < result[i].paragraphs.length; j++){
-             // console.log(result[i].paragraphs[j].qas.length);
-            for(var k = 0; k < result[i].paragraphs[j].qas.length; k++){
-              if(category == null || 
-                 result[i].paragraphs[j].qas[k].question == null || 
-                 result[i].paragraphs[j].qas[k].answers[0] == null){
-                 console.log("something is null");
-                //do nothing for this question, something is null
-              }else{
-                var question = result[i].paragraphs[j].qas[k].question;
-                var answer =   result[i].paragraphs[j].qas[k].answers[0].text;
-                //record this question into new db
-                console.log("Category: " + category + " - Answer: " + answer + " - Question: " + question);            
-                var stanfordQuestion = new StanfordQuestion();
-                stanfordQuestion.category = category;
-                stanfordQuestion.question = question;
-                stanfordQuestion.answer = answer;
-                stanfordQuestion.save();
-              }
-            }
-          }
-        }
-      }
-    });
- 
-  });
-*/
 
   //==============================================
   //Game Routes
   //==============================================
 
-  app.get('/sockettest', function(req, res){
-    res.render('socketTest.ejs', {title: "Quiz Game Socket Test"});
-  });
 
   app.get('/designtest', function(req, res){
     functionTest();
@@ -133,130 +38,25 @@ module.exports = function(app, passport){
   });
 
   //The main page, renders jquestion or quizquestion half time
-  app.get('/', function(req, res){
-    //set difficulty
-    var difficulty = 2;
-    if(req.user){
-      difficulty = req.user.difficulty;
-    }
-    var random = rwc(rwcTable[difficulty]);
+  app.get('/:latitude/:longitude/:miles', function(req, res){
+     var lat = parseFloat(req.params.latitude);
+     var longi = parseFloat(req.params.longitude);
+     var miles = parseInt(req.params.miles);
+     Locations.find({location: { $geoWithin: { $centerSphere: [[longi, lat], miles / 3963.2]      }    }  }, {}, ).exec(function(err, results){
+      if(err) throw err;
 
-    if(random == 0){
-      renderJQuestion(req, res);
-    }else if(random == 1){
-      renderQuizQuestion(req, res);
-    }else{
-      renderStanfordQuestion(req, res);
-    }
+      res.render('index.ejs',{
+        title: "Quiz Game Scoreboard",
+        results: results,
+        user: req.user
+      });
+    });
   });
 
-  //user clicked on a wrong answer
-  app.get('/wronganswer/:questionType/:questionId', function(req, res, done){
-    console.log("wronganswer");
-    //if there is a user signed in update his history and score
-    if(req.user){
-      var user = req.user;
 
-      //find question in users question history
-      var questionFound = false;
-      var qIndex = null;
-      var qidToFind = req.params.questionId;//new ObjectId(req.params.questionId);
-      for(var i = 0; i < user.questionHistory.length; i++){
-        //console.log(user.questionHistory[i]);
-        if(user.questionHistory[i].qid == qidToFind &&
-           user.questionHistory[i].type == req.params.questionType){
-          questionFound = true;
-          qIndex = i;
-        }
-      }
-
-      //if question was found in question history, update it, otherwise create a new one
-      if(questionFound){
-        //the question was found at index qIndex, modify correct field
-        user.questionHistory[qIndex].wrongattempts++;
-      }else{
-        //the question was not found, create a new one, and add it to user
-        var newHistory = {
-          type : req.params.questionType,
-          qid : req.params.questionId,
-          wrongattempts: 1,
-          rightattempts: 0
-        };
-        user.questionHistory.push(newHistory);// = questionHistory;
-      }
-
-      //update score, and save user back to db
-      req.session.score = req.session.score - 1;
-      user.gameinfo.score = req.session.score;
-      user.save();
-
-      //let front end know
-      res.send({
-        message: "ok",
-        score  : req.session.score
-      });
-    }else{
-      //user is not signed in, send error to client
-      res.send({
-        message: "error"
-      });
-    }
-  });
-
-  //user clicked on a right answer
-  app.get('/rightanswer/:questionType/:questionId', function(req, res, done){
-    //if user is logged in, update score and record question, otherwise send error message
-    if(req.user){
-      console.log("rightanswer");
-      var user = req.user;
-      
-      //find question in users question history
-      var questionFound = false;
-      var qIndex = null;
-      var qidToFind = req.params.questionId;
-
-      //loop through question history
-      for(var i = 0; i < user.questionHistory.length; i++){
-        if(user.questionHistory[i].qid == qidToFind &&
-           user.questionHistory[i].type == req.params.questionType){
-          questionFound = true;
-          qIndex = i;
-        }
-      }
-
-      //if question was found, update, otherwise create new one
-      if(questionFound){
-        user.questionHistory[qIndex].rightattempts++;
-      }else{
-        var newHistory = {
-          type : req.params.questionType,
-          qid  : req.params.questionId,
-          wrongattempts: 0,
-          rightattempts: 1
-        };
-        user.questionHistory.push(newHistory);
-      }
-
-      //we decrease the score in the session and
-      //update that score to the db
-      req.session.score = req.session.score + 5;
-      user.gameinfo.score = req.session.score;
-      user.save();
-      
-      //let front end know
-      res.send({
-        message: "ok",
-        score  : req.session.score
-      });//end res.send
-    }else{
-      res.send({
-        message: "error"
-      });
-    }
-  });//end app.get
 
   app.get('/scoreboard', function(req, res, done){
-    Users.find({}, {}, ).sort('-gameinfo.score').exec(function(err, results){
+    Locations.find({}, {}, ).exec(function(err, results){
       if(err) throw err;
 
       res.render('scoreboard.ejs',{
@@ -769,151 +569,8 @@ module.exports = function(app, passport){
 // Functions used by routes
 //==============================================
 
-//renders a question from the stanford collection
-function renderStanfordQuestion(req, res){
-  //first we get a random question from the stanfordQuestions
-  var filter = {};
-  var fields = {};
-  StanfordQuestion.findRandom(filter, fields, {limit: 1}, function(err, result){
-    if(err) throw err;
 
-    //get 11 more answers with the same category as the result, where the answer isn't the same
-    var filter = {answer: {$ne: result[0].answer}, category: result[0].category};
-    var fields = {answer: 1};//only get the answers
-    StanfordQuestion.findRandom(filter, fields, {limit: 11}, function(error, answers){
-      if(error) throw error;
-      
-      //if signed in, save score into session
-      if(req.user) req.session.score = req.user.gameinfo.score;
 
-      //splice the correct answer into the list of answers
-      var answerIndex = Math.floor(Math.random() * 12);
-      if(answers == null) return 0;
-      answers.splice(answerIndex, 0, {answer: result[0].answer});
-
-      //modify answers array, so answer is stored as "label" instead of answer
-      //this is for compatibility with the quizQuestion type
-      var modifiedAnswers = new Array();
-      for(var i = 0; i < answers.length; i++){
-        answers[i]["label"] = answers[i]["answer"];
-      }
-
-      var questionType = "stanfordQuestion";
-      res.render('index.ejs', {
-        title: "Quiz Game",
-        category: result[0].category,
-        question: result[0].question,
-        answer  : result[0].answer,
-        answers : answers,
-        answerIndex : answerIndex,
-        user: req.user,
-        session: req.session,
-        questionType: questionType,
-        questionId: result[0]._id
-      });
-    });
-    
-     //res.send(result[0].answer);
-    
-
-  });
-}
-
-function renderQuizQuestion(req, res){
-   // Get the count of all quizquestions
-    QuizQuestion.count().exec(function (err, count) {
-
-    // Get a random entry
-    var random = Math.floor(Math.random() * count)
-
-    // Again query all users but only fetch one offset by our random #
-    QuizQuestion.findOne().skip(random).exec(
-      function (err, result) {
-        if(!err){
-          var filter = {label: {$ne: result.label}, category: result.category};
-          var fields = {label: 1}; //only pull up the answers
-        QuizQuestion.findRandom( filter, fields, {limit: 11}, function(error, answers){
-            if(error)throw error;
-            
-            if(req.user)
-               req.session.score = req.user.gameinfo.score;
-            console.log("id: " + result._id);
-
-            //replace any occurance of the string "???" in db, with "
-            result.raw = result.raw.replace(new RegExp("???".replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), "\'");
-            result.raw = result.raw.replace(new RegExp("??".replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), "\'");
-        
-            var answerIndex = Math.floor(Math.random() * 12);
-            answers.splice(answerIndex, 0, {label: result.label});
-
-            var questionType = "quizQuestion";
-               res.render('index.ejs',{
-                title  : "Quiz Game",
-                category : result.category,
-                question : result.raw,
-                answer   : result.label,
-                answers : answers,
-                answerIndex : answerIndex,
-                user : req.user,
-                session : req.session,
-                questionType: questionType,
-                questionId : result._id
-              });
-          });
-        } 
-      })
-    })
-
-}
-
-//Renders a question from the jquestion collection
-function renderJQuestion(req, res){
-  //first we get a random question from the JQuestions    
-    var filter = {subDiscipline: {$exists: true}};
-    var fields = {}; //only pull up the answers
-    JQuestion.findRandom( filter, fields, {limit: 1}, function(err, result){
-      if(err) throw err;
-      //get 11 more answers from the same discipline as the result, where the answer isn't the same
-      var filter = {answer: {$ne: result[0].answer}, subDiscipline: result[0].subDiscipline};
-      //var filter = {discipline: "Science"};
-      //var fields = {}; //we only want to query for random answers
-      var fields = {answer: 1}; //only pull up the answers
-      JQuestion.findRandom(filter, fields, {limit: 11}, function(error, answers){
-        if(error) throw error;
-
-        //if signed in, save score into session
-        if(req.user) req.session.score = req.user.gameinfo.score;
-
-        //splice the correct answer into the list of answers
-        var answerIndex = Math.floor(Math.random() * 12);
-        if(answers == null)return 0;
-        answers.splice(answerIndex, 0, {answer: result[0].answer});
-
-        //modify answers array, so answer is stored as "label" instead of answer
-        //this is for compatibility with the quizQuestion type
-        
-        for(var i = 0; i < answers.length; i++){
-          answers[i]["label"] = answers[i]["answer"];
-        }
- 
-        console.log("result[0]._id: " + result[0]._id);
-     
-        var questionType = "jQuestion";
-        res.render('index.ejs', {
-          title: "Quiz Game",
-          category: result[0].category,
-          question: result[0].question,
-          answer  : result[0].answer,
-          answers : answers,
-          answerIndex: answerIndex,
-          user: req.user,
-          session: req.session,
-          questionType: questionType,
-          questionId : result[0]._id
-        });
-      });
-    });
-}
 
 function functionTest(){
   console.log("functionTEST CALLED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
