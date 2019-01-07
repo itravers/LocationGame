@@ -6,6 +6,7 @@ var hostedAddress = "http://192.168.1.197";
 //var hostedAddress = "http://quiz.chicosystems.com";
 
 // load up the quizQestions model
+var Distance = require('geo-distance');
 var Locations            = require('../models/locations');
 var util = require('util');
 
@@ -45,6 +46,17 @@ module.exports = function(app, passport){
      Locations.find({location: { $geoWithin: { $centerSphere: [[longi, lat], miles / 3963.2]      }    }  }, {}, ).exec(function(err, results){
       if(err) throw err;
 
+      //here we want to sort results based on closest distance from latitude and longitude
+      var myLoc = {
+        lat: lat,
+        lon: longi
+      };
+
+      console.log("sorting...");
+      //results = selectionSort(results, myLoc);
+      results = mergeSort(results, myLoc);
+      console.log("done sorting");
+
       res.render('index.ejs',{
         title: "Quiz Game Scoreboard",
         results: results,
@@ -53,7 +65,11 @@ module.exports = function(app, passport){
     });
   });
 
-
+  app.get('/mapTest', function(req, res){
+    res.render('mapTest.ejs',{
+      title: "Map Test",
+    });
+  });
 
   app.get('/scoreboard', function(req, res, done){
     Locations.find({}, {}, ).exec(function(err, results){
@@ -580,4 +596,104 @@ function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive 
+}
+
+function swap(results, firstIndex, secondIndex){
+  var temp = results[firstIndex];
+  results[firstIndex] = results[secondIndex];
+  results[secondIndex] = temp;
+}
+
+function selectionSort(results, myLoc){
+  console.log("sorting...");
+  var len = results.length;
+  var min;
+
+  for(var i = 0; i < len; i++){
+    min = i;
+    if(i % 500 == 0)console.log("Sorting Record " + i);
+
+    for(var j = i + 1; j < len; j++){
+      var propLoc1 = {
+          lat: results[j].lat,
+          lon: results[j].longi
+      }
+
+      var propLoc2 = {
+        lat: results[min].lat,
+        lon: results[min].longi
+      }
+
+      var distance1 = Distance.between(myLoc, propLoc1);
+      var distance2 = Distance.between(myLoc, propLoc2);
+      if(distance1 < distance2){
+        min = j;
+      }
+    }
+    
+    if(i != min){
+      swap(results, i, min);
+    }
+  }
+  console.log("Done Sorting!");
+  return results;
+}
+
+function mergeSort (arr, myLoc) {
+    if (arr.length < 2) {
+      return arr;
+    }
+
+    var mid = Math.floor(arr.length / 2);
+    var subLeft = mergeSort(arr.slice(0, mid), myLoc);
+    var subRight = mergeSort(arr.slice(mid), myLoc);
+
+
+    return merge(subLeft, subRight, myLoc);
+}
+
+function merge (node1, node2, myLoc) {
+    var result = [];
+    while (node1.length > 0 && node2.length > 0){
+         var propLoc1 = {
+           lat: node1[0].lat,
+           lon: node1[0].longi
+         }
+          var propLoc2 = {
+            lat: node2[0].lat,
+            lon: node2[0].longi
+          }
+
+         var distance1 = Distance.between(myLoc, propLoc1);
+         var distance2 = Distance.between(myLoc, propLoc2);
+         node1[0].distance = distance1;
+         node2[0].distance = distance2;
+         node1[0].val = calculateValue(node1[0]);
+         node2[0].val = calculateValue(node2[0]);
+         result.push(distance1 < distance2? node1.shift() : node2.shift());
+    }
+    return result.concat(node1.length? node1 : node2);
+}
+
+function calculateValue(node){
+  var baseValue = 10000;
+  var rating = node.foursquare.rating;
+  if(rating == null || rating == 0) rating = 1;
+  var reviewCount = node.foursquare.reviewCount;
+  if(reviewCount == null || reviewCount == 0)reviewCount = 1;
+  var ratingCount = node.foursquare.ratingCount;
+  if(ratingCount == null || ratingCount == 0) ratingCount = 1;
+  var photosCount = node.foursquare.photosCount;
+  if(photosCount == null || photosCount == 0) photosCount = 1;
+  var numLocations = node.foursquare.otherLocations.length;
+  if(numLocations == null || numLocations == 0)numLocations = 1;
+  
+  baseValue = baseValue + (ratingCount * baseValue * .2);
+  baseValue = baseValue + (reviewCount * baseValue * .5);
+  baseValue = baseValue + (photosCount * baseValue * .8);
+  baseValue *= rating;
+
+
+  var val = baseValue * numLocations;
+  return val;
 }

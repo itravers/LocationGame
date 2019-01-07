@@ -25,38 +25,11 @@
   <table class="table table-hover">
   <thead>
     <tr>
-      <th></th>
       <th>Title</th>
       <th>City</th>
       <th>State</th>
-      <th>Distance</th>
-      <th>Value</th>
     </tr>
   </thead>
-  <tbody>
-
-    <% for(var i =0; i < results.length; i++){ %>
-    <%
-      var title = results[i].title;
-      var city = results[i].city_name;
-      var state = results[i].state;
-      var lat = results[i].lat;
-      var longi = results[i].longi;
-      var distance = results[i].distance;
-      var val = results[i].val;
-        
-    %>
-      <tr>
-        <th scope="row"><%=i+1%></th>
-        <td><%= title %></td> 
-        <td><%= city %></td> 
-        <td><%= state %></td> 
-        <td><%= distance %></td> 
-        <td>$<%= val %></td> 
-      </tr>
-    <% } %>
-  
-  </tbody>
 </table>
 
 
