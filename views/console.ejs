@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include partials/head %>
+</head>
+<body>
+<header>
+  <% include partials/header %>
+</header>
+
+<%
+  var company_value = user.company_value;
+  company_value = (company_value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+  company_value = (company_value).substring(0, company_value.length - 3);
+  company_value = "$"+company_value;
+  
+  var portfolio_value = user.portfolio_value;
+  portfolio_value = (portfolio_value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+  portfolio_value = (portfolio_value).substring(0, portfolio_value.length - 3);
+  portfolio_value = "$"+portfolio_value;
+  
+  var cash_on_hand = user.cash_on_hand;
+  cash_on_hand = (cash_on_hand).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+  cash_on_hand = (cash_on_hand).substring(0, cash_on_hand.length - 3);
+  cash_on_hand = "$"+cash_on_hand;
+  
+  var cash_tied_up = user.cash_tied_up;
+  cash_tied_up = (cash_tied_up).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+  cash_tied_up = (cash_tied_up).substring(0, cash_tied_up.length - 3);
+  cash_tied_up = "$"+cash_tied_up;
+  
+  var income_last_day = user.income.last_day;
+  income_last_day = (income_last_day).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+  income_last_day = (income_last_day).substring(0, income_last_day.length - 3);
+  income_last_day = "$"+income_last_day;
+  
+  var income_last_week = user.income.last_week;
+  income_last_week = (income_last_week).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+  income_last_week = (income_last_week).substring(0, income_last_week.length - 3);
+  income_last_week = "$"+income_last_week;
+  
+  var income_last_month = user.income.last_month;
+  income_last_month = (income_last_month).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+  income_last_month = (income_last_month).substring(0, income_last_month.length - 3);
+  income_last_month = "$"+income_last_month;
+  
+  var income_last_year = user.income.last_year;
+  income_last_year = (income_last_year).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+  income_last_year = (income_last_year).substring(0, income_last_year.length - 3);
+  income_last_year = "$"+income_last_year;
+
+  var level = user.level;
+  var company_name = user.company_name;
+  var groupies = user.groupies;
+%>
+
+<div class="container col-sm-12">
+
+  <div class="container" id="main_level_label">Level <%= level %></div>
+  <img src="images/signedout.png" class="center-block img-responsive" id="avatar_image"/>
+  <div class="container" id="main_level_label"><%= company_name %></div>
+  <br>
+  <div class="container" id="company_value_label">
+    Company Value
+  </div>
+  <div class="container" id="company_value">
+    <%= company_value %>
+  </div>
+
+  <div class="container" id="portfolio_value_label">
+    Portfolio Value
+  </div>
+  <span class="fa-stack fa-2x" id="user_level_label">
+    <i class="fa fa-circle-o fa-stack-2x"></i>
+    <strong class="fa-stack-1x"><%= level + 1 %></strong>
+  </span>
+  <div class="progress container col-sm-10 company_slider">
+    <div class="progress-bar" role="progressbar" style="width: 70%;" aria-valuenow="5" aria-valuemin="0" aria-valuemax="100">
+    </div>
+      <div class="company_slider_text"><%= portfolio_value %></div>
+  </div>
+  <div class="container" id="next_level_label">
+    Need $5,000,000 For Next Level
+  </div>
+
+  <br><br>
+
+  <div class="container" id="portfolio_value_label">
+    Cash On Hand
+  </div>
+  <span class="fa-stack fa-2x" id="user_level_label">
+    <i class="fa fa-circle-o fa-stack-2x"></i>
+    <strong class="fa-stack-1x">+</strong>
+  </span>
+  <div class="progress container col-sm-10 company_slider">
+    <div class="progress-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
+    </div>
+      <div class="company_slider_text"><%= cash_on_hand %></div>
+  </div>
+  <div class="container" id="next_level_label">
+    Limit $2,000,000
+  </div>
+
+  <div class="container" id="cashtied_label">
+    Cash Tied Up
+  </div>
+  <div class="container" id="cashtied_value">
+    <%= cash_tied_up %>
+  </div>
+  <br>
+  <hr/>
+  
+  <div class="container" id="income_label">
+    Income
+  </div>
+  <div class="container col-sm-12">
+    <div class="row">
+      <div class="col-sm-3">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Last Day</h5>
+            <p class="card-text" id="coin_balance_value"><%= income_last_day %></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Last Week</h5>
+            <p class="card-text" id="coin_balance_value"><%= income_last_week %></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Last Month</h5>
+            <p class="card-text" id="coin_balance_value"><%= income_last_month %></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Last Year</h5>
+            <p class="card-text" id="coin_balance_value"><%= income_last_year %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <br>
+  <hr/>
+
+  <div class="container col-sm-10">
+    <div class="row">
+      <div class="col-sm-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Groupies Balance</h5>
+            <p class="card-text" id="coin_balance_value">50<span class="fa fa-diamond"></span>
+</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Buy Groupies<span class="fa fa-cart-plus"></span>
+</h5>
+            <p class="card-text">Buy Groupies From Our Store!</p>
+            <a href="#" class="btn btn-primary">Store</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Watch Ad<span class="fa fa-audio-description"></span>
+</h5>
+            <p class="card-text">Watch an ad for some free groupies!</p>
+            <a href="#" class="btn btn-primary">Watch</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <footer>
+    <% include partials/footer %>
+  </footer>
+
+</body>
+</html>

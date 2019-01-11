@@ -8,6 +8,8 @@ var hostedAddress = "http://192.168.1.197";
 // load up the quizQestions model
 var Distance = require('geo-distance');
 var Locations            = require('../models/locations');
+var Cities            = require('../models/cities');
+var Venues            = require('../models/venues');
 var util = require('util');
 
 
@@ -38,12 +40,24 @@ module.exports = function(app, passport){
     renderJQuestion(req, res);
   });
 
+  //this is the main user console
+  app.get('/console', function(req, res){
+    if(req.user){
+      res.render('console.ejs', {
+        title : "Console",
+        user : req.user
+      });
+    }else{
+      res.redirect('/login');
+    }
+  });
+
   //The main page, renders jquestion or quizquestion half time
   app.get('/:latitude/:longitude/:miles', function(req, res){
      var lat = parseFloat(req.params.latitude);
      var longi = parseFloat(req.params.longitude);
      var miles = parseInt(req.params.miles);
-     Locations.find({location: { $geoWithin: { $centerSphere: [[longi, lat], miles / 3963.2]      }    }  }, {}, ).exec(function(err, results){
+     Cities.find({location: { $geoWithin: { $centerSphere: [[longi, lat], miles / 3963.2]      }    }  }, {}, ).exec(function(err, results){
       if(err) throw err;
 
       //here we want to sort results based on closest distance from latitude and longitude
@@ -388,7 +402,7 @@ module.exports = function(app, passport){
 
   //process the login form
   app.post('/login', passport.authenticate('local-login',{
-    successRedirect : '/',
+    successRedirect : '/console',
     failureRedirect : '/login',
     failureFlash     : true
   }));
@@ -677,23 +691,8 @@ function merge (node1, node2, myLoc) {
 
 function calculateValue(node){
   var baseValue = 10000;
-  var rating = node.foursquare.rating;
-  if(rating == null || rating == 0) rating = 1;
-  var reviewCount = node.foursquare.reviewCount;
-  if(reviewCount == null || reviewCount == 0)reviewCount = 1;
-  var ratingCount = node.foursquare.ratingCount;
-  if(ratingCount == null || ratingCount == 0) ratingCount = 1;
-  var photosCount = node.foursquare.photosCount;
-  if(photosCount == null || photosCount == 0) photosCount = 1;
-  var numLocations = node.foursquare.otherLocations.length;
-  if(numLocations == null || numLocations == 0)numLocations = 1;
-  
-  baseValue = baseValue + (ratingCount * baseValue * .2);
-  baseValue = baseValue + (reviewCount * baseValue * .5);
-  baseValue = baseValue + (photosCount * baseValue * .8);
-  baseValue *= rating;
 
 
-  var val = baseValue * numLocations;
+  var val = baseValue * 1;
   return val;
 }

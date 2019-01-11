@@ -1,4 +1,4 @@
 // config/database.js
 module.exports = {
-  'url' : 'localhost:27017/foursquare'
+  'url' : 'localhost:27017/LocationGame'
 };

@@ -38,17 +38,20 @@ var userSchema = mongoose.Schema({
         name         : String,
         photo        : String
     },
-    gameinfo        : {
-      score         : {type: Number, default: 0}
+    income           : {
+        last_day     : Number,
+        last_week    : Number,
+        last_month   : Number,
+        last_year    : Number
     },
-    permissions     : {
-      admin         : {type: Boolean, default: false},
-      editQuestions : {type: Boolean, default: false},
-      viewReports   : {type: Boolean, default: false},
-      editUsers     : {type: Boolean, default: false}
-    },
-    questionHistory : [historySchema],
-    difficulty      : {type: Number, default: 2}
+    company_value    : Number,
+    permissions      : Object,
+    portfolio_value  : Number,
+    cash_on_hand     : Number,
+    cash_tied_up     : Number,
+    level            : Number,
+    groupies         : Number,
+    company_name     : String
 
 });
 
