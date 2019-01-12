@@ -13,7 +13,8 @@ var citiesSchema = mongoose.Schema({
     location         : Object,   
     country_code     : String,   
     country_name     : String,
-    city_type        : String
+    city_type        : String,
+    percent_owned    : {type: Number, default: 0}
 },
 {
   collection: 'cities'

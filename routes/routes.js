@@ -12,7 +12,7 @@ var Users = require('../models/user');
 var Cities            = require('../models/cities');
 var Venues            = require('../models/venues');
 var util = require('util');
-
+var ObjectId = (require('mongoose').Types.ObjectId);
 
 module.exports = function(app, passport){
 
@@ -23,18 +23,18 @@ module.exports = function(app, passport){
 
   app.get('/designtest', function(req, res){
     functionTest();
-    res.render('designTest.ejs', {title : "Quiz Game"});
+    res.render('designTest.ejs', {title : "Design Test"});
   });
 
   app.get('/privacy', function(req, res){
     res.render('privacy.ejs', {
-      title : "Quiz Game - Privacy",
+      title : "Location Game - Privacy",
       user : req.user  
     });
   });
 
   app.get('/designtest2', function(req, res){
-    res.render('designTest2.ejs', {title : "Quiz Game"});
+    res.render('designTest2.ejs', {title : "Design Test 2"});
   });
 
   app.get('/jquestion', function (req, res){
@@ -60,6 +60,53 @@ module.exports = function(app, passport){
       res.render('console.ejs', {
         title : "Console",
         user : req.user
+      });
+    }else{
+      res.redirect('/login');
+    }
+  });
+
+  //The buy properties page, user can see all local properties
+  app.get('/buyproperties', function(req, res){
+    var lat = 41.08749;
+    var longi = -122.717445;
+    var miles = 1000;
+    if(req.user){
+      //first lets find a list of cities
+      Cities.find({location: { $geoWithin: { $centerSphere: [[longi, lat], miles / 3963.2]}}},{},).exec(function(err, results){
+        if(err) throw err;
+        //now we want to sort results based on location
+        var myLoc = {lat: lat, lon: longi};
+        console.log("sorting cities...");
+        results = mergeSort(results, myLoc);
+        console.log("done sorting cities");
+        res.render('buyproperties.ejs', {
+          title : "Buy Properties",
+          user  : req.user,
+          results : results
+        });
+
+      });
+      
+    }else{
+      res.redirect('/login');
+    }
+  });
+
+  //specific buy property page
+  app.get('/buyproperty/:propertyid', function(req, res){
+    var propertyid = req.params.propertyid;
+    //var object = new ObjectId(propertyid);
+    if(req.user){
+      //Cities.find( {_id: new ObjectId(propertyid)}, {}).exec(function(err, results){
+      Cities.findOne({_id: new ObjectId(propertyid)}, {}, function(err, results){
+        if(err) throw err;
+        console.log(results);
+        res.render('buyproperty.ejs', {
+          title : "Buy " + results.city_name,
+          user  : req.user,
+          results : results
+        });
       });
     }else{
       res.redirect('/login');
@@ -104,7 +151,7 @@ module.exports = function(app, passport){
       if(err) throw err;
 
       res.render('scoreboard.ejs',{
-        title: "Quiz Game Scoreboard",
+        title: "Scoreboard",
         results: results,
         user: req.user
       });
@@ -218,7 +265,7 @@ module.exports = function(app, passport){
 
           console.log("users: " + users);
           res.render('admin.ejs', {
-            title: "Quiz Game Admin",
+            title: "Admin",
             user: req.user,
             users: users,
             reports: results
@@ -248,125 +295,8 @@ module.exports = function(app, passport){
     }
   });
 
-  //gets a quiz question of given id, sends it to frontend
-  app.get('/quizquestiondisplay/:id', function(req, res){
-    if(req.params.id == "" || !ObjectId.isValid(req.params.id)){
-         res.send({status: "error", message: "Question: "+req.params.id+" does not exist!"});
-      return 0;
-    }
-    var query = { _id: new ObjectId(req.params.id) };
-    QuizQuestion.find(query, function(err, result){
-      if(err){
-        res.send({status: "error", message: err});
-      }else if(result == ""){
-        res.send({status: "error", message: "Question :"+req.params.id+" does not exist!"});
-      }else{
-        //console.log("question: " + result);
-        res.send({status: "success", message: "Success getting question: " + req.params.id, question: result});
-      }
-    });
     
-  });
 
-
-  //gets a jquestion of a given id, sends it to frontend
-  app.get('/jquestiondisplay/:id', function(req, res){
-    console.log("id: " + req.params.id);
-    if(req.params.id == "" || !ObjectId.isValid(req.params.id)){
-         res.send({status: "error", message: "Question: "+req.params.id+" does not exist!"});
-      return 0;
-    }
-    var query = { _id: new ObjectId(req.params.id) };
-    JQuestion.find(query, function(err, result){
-      if(err){
-         res.send({status: "error", message: err});
-      }else if(result == ""){
-         res.send({status: "error", message: "Question: "+req.params.id+" does not exist!"});
-      }else{ 
-        res.send({status: "success", message: "Success getting question: " + req.params.id, question: result});
-      } 
-    });
-  });
-
-  //gets a stanfordquestion of a given id, sends it to frontend
-  app.get('/stanfordquestiondisplay/:id', function(req, res){
-    console.log("id: " + req.params.id);
-    if(req.params.id == "" || !ObjectId.isValid(req.params.id)){
-         res.send({status: "error", message: "Question: "+req.params.id+" does not exist!"});
-      return 0;
-    }
-    var query = { _id: new ObjectId(req.params.id) };
-    StanfordQuestion.find(query, function(err, result){
-      if(err){
-         res.send({status: "error", message: err});
-      }else if(result == ""){
-         res.send({status: "error", message: "Question: "+req.params.id+" does not exist!"});
-      }else{
-        res.send({status: "success", message: "Success getting question: " + req.params.id, question: result});
-      }
-    });
-  });
-
-
-  app.post('/quizquestionedit', function(req, res){
-    if(req.user && req.user.permissions.admin && req.user.permissions.editQuestions){
-      //update the db
-      //var query = {id: req.body.id};
-      var query = { _id: new ObjectId(req.body.id) };
-      QuizQuestion.findOne(query, function(err, doc){
-        doc.category = req.body.category;
-        doc.raw = req.body.raw;
-        doc.label = req.body.label;
-        doc.save();
-        res.send({status: "success", message: "Question was Edited"});
-      });
-    }else{
-      //user does not have permission
-      res.send({status: "error", message: "User does not have permissions to edit questions!"});
-    }
-
-  });
-
-  app.post('/jquestionedit', function(req, res){
-    console.log("id: " + req.body.id);
-    if(req.user && req.user.permissions.admin && req.user.permissions.editQuestions){
-      //update the db
-      var query = { _id: new ObjectId(req.body.id) };
-      JQuestion.findOne(query, function(err, doc){
-      console.log("doc " + doc);
-        doc.category = req.body.category;
-        doc.question = req.body.question;
-        doc.answer = req.body.answer;
-        doc.save();
-        res.send({status: "success", message: "Question was Edited"});
-      });
-    }else{
-      //user does not have permission
-      res.send({status: "error", message: "User does not have permissions to edit questions!"});
-    }
-
-  });
-
-  //front end submits stanfordquestionedit post
-  app.post('/stanfordquestionedit', function(req, res){
-    console.log("id: " + req.body.id);
-    if(req.user && req.user.permissions.admin && req.user.permissions.editQuestions){
-      //update the db
-      var query = { _id: new ObjectId(req.body.id) };
-      StanfordQuestion.findOne(query, function(err, doc){
-      console.log("doc " + doc);
-        doc.category = req.body.category;
-        doc.question = req.body.question;
-        doc.answer = req.body.answer;
-        doc.save();
-        res.send({status: "success", message: "Question was Edited"});
-      });
-    }else{
-      //user does not have permission
-      res.send({status: "error", message: "User does not have permissions to edit questions!"});
-    }
-
-  });
 
   //============================================
   // MultiPlayer Related Routes

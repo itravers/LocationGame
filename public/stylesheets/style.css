@@ -15,6 +15,12 @@ a {
   color: white;
 }
 
+.navbar{
+  padding: 0;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
 #avatar_image{
   width:100px;
   height:100px;
@@ -199,7 +205,38 @@ display: inline;
 }
 
 .dropdown-left{
-  left:-140px;
+  left:-300px;
+}
+
+.list-group-item{
+  padding: 1.75rem 1.25rem;
+  font-size: 40px;
+  font-weight: bold;
+  border-radius: .50rem;
+}
+
+.buy_info{
+  display: inline;
+  outline: 2px solid black;
+  border-radius: 20px;
+  text-align: center;
+  font-size: 26px;
+  font: 26px "Impact", grey, sans-serif;
+  color: gray; 
+} 
+
+.buy_info_num{
+  font-weight: bold;
+  font-size: 28px;
+  color:black;
+}
+
+.badge{
+  background-color: gray;
+  color: white;
+  font-size:22px;
+  font-weight: bold;
+  float: right;
 }
 
 .col-centered{

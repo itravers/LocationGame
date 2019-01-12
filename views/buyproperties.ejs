@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include partials/head %>
+</head>
+<body>
+<header>
+  <% include partials/header %>
+</header>
+
+<%
+  //info here
+%>
+
+<div class="container col-sm-12">
+  <div class="row border">
+    <div class="col-sm-3 buy_info">
+      <div>Properties Owned</div>
+      <div class="buy_info_num">13</div>
+    </div>
+    <div class="col-sm-3 buy_info">
+      <div>Properties Owned</div>
+      <div class="buy_info_num">13</div>
+    </div>
+    <div class="col-sm-3 buy_info">
+      <div>Properties Owned</div>
+      <div class="buy_info_num">13</div>
+    </div>
+    <div class="col-sm-3 buy_info">
+      <div>Properties Owned</div>
+      <div class="buy_info_num">13</div>
+    </div>
+  </div>
+  <ul class="list-group">
+    <% for(var i = 0; i < results.length; i++){ %>
+    <%
+      var city_name = results[i].city_name;
+      var percent_owned = results[i].percent_owned*100;
+      var _id = results[i]._id;
+    %>
+    <a href="/buyproperty/<%= _id %>"><li class="list-group-item"><span class="fa fa-building"></span> <%= city_name %><span class="badge"><%= percent_owned %>% Owned</span></li></a>
+
+    <% } %>
+    <a href="/"><li class="list-group-item"><span class="fa fa-building"></span> City of Weed <span class="badge">100% Owned</span></li></a>
+  </ul>
+</div>
+  
+  <footer>
+    <% include partials/footer %>
+  </footer>
+
+</body>
+</html>
