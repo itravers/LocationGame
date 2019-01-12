@@ -11,6 +11,10 @@ a {
   color: #FFFFFF;
 }
 
+.fa-bars{
+  color: white;
+}
+
 #avatar_image{
   width:100px;
   height:100px;

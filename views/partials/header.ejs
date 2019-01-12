@@ -13,7 +13,11 @@
       photo = locals.user.google.photo;
     }else if(locals.user.local.email != null){
       name = locals.user.local.email;
-      photo = "images/signedout.png";
+      if(locals.user.local.avatar != null){
+        photo = local.user.local.avatar;
+      }else{
+        photo = "images/signedout.png";
+      }
     }
   }
  %>
@@ -29,11 +33,6 @@
 
   <div class="navbar-collapse collapse" id="collapsingNavbar">
     <ul class="navbar-nav">
-    <% if(locals.user){ %>
-      <li class="nav-item">
-        <a class="nav-link nav-big" href="/lobby">Multiplayer</a>
-      </li>
-    <% } %>
       <li class="nav-item">
         <a class="nav-link" href=""></a>
       </li>
@@ -52,9 +51,11 @@
 
 <% if(locals.user){ %>
     <div class="dropdown">
-      <button class="dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <img src="<%= photo %>" height="60px" width="60px"><span class="caret"></span></img>
-      </button>
+  
+     <button class="dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="fa fa-bars fa-2x"></span>
+      </button> 
+
 
       <ul class="dropdown-menu dropdown-left" aria-labelledby="dropdownMenuButton">
         <a class="dropdown-item">Signed in as <b> <%= name %></b></a>
@@ -75,9 +76,9 @@
 
 
     <div class="dropdown">
-      <button class="dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <img src="/images/signedout.png" height="60px" width="60px"><span class="caret"></span></img>
-      </button>
+     <button class="dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="fa fa-bars fa-2x"></span>
+      </button> 
 
       <ul class="dropdown-menu dropdown-left" aria-labelledby="dropdownMenuButton">
         <a class="dropdown-item" href="/login">Login</a>
