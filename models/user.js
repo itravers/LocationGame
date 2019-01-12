@@ -39,19 +39,21 @@ var userSchema = mongoose.Schema({
         photo        : String
     },
     income           : {
-        last_day     : Number,
-        last_week    : Number,
-        last_month   : Number,
-        last_year    : Number
+        last_day     : {type: Number, default: 0},
+        last_week    : {type: Number, default: 0},
+        last_month   : {type: Number, default: 0},
+        last_year    : {type: Number, default: 0}
     },
-    company_value    : Number,
-    permissions      : Object,
-    portfolio_value  : Number,
-    cash_on_hand     : Number,
-    cash_tied_up     : Number,
-    level            : Number,
-    groupies         : Number,
-    company_name     : String
+    permissions      : {
+      admin : {type: Boolean, default: false}
+    },
+    portfolio_value  : {type: Number, default: 0},
+    cash_on_hand     : {type: Number, default: 100},
+    cash_tied_up     : {type: Number, default: 0},
+    level            : {type: Number, default: 0},
+    groupies         : {type: Number, default: 0},
+    company_name     : {type: String, default: "Default Name"}
+
 
 });
 

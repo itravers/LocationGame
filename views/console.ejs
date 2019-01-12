@@ -10,8 +10,9 @@
 
 <%
   var company_value = user.company_value;
-  company_value = (company_value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-  company_value = (company_value).substring(0, company_value.length - 3);
+  console.log("companyvaluefront" + company_value);
+    company_value = (company_value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    company_value = (company_value).substring(0, company_value.length - 3);
   company_value = "$"+company_value;
   
   var portfolio_value = user.portfolio_value;
@@ -48,6 +49,21 @@
   income_last_year = (income_last_year).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
   income_last_year = (income_last_year).substring(0, income_last_year.length - 3);
   income_last_year = "$"+income_last_year;
+  
+  var portfolio_next_value = user.portfolio_next_value;
+  portfolio_next_value = (portfolio_next_value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+  portfolio_next_value = (portfolio_next_value).substring(0, portfolio_next_value.length - 3);
+  portfolio_next_value = "$"+portfolio_next_value;
+  console.log(portfolio_next_value);
+
+   
+  var cash_on_hand_limit = user.cash_on_hand_limit;
+  cash_on_hand_limit = (cash_on_hand_limit).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+  cash_on_hand_limit = (cash_on_hand_limit).substring(0, cash_on_hand_limit.length - 3);
+  cash_on_hand_limit = "$"+cash_on_hand_limit;
+  
+  var portfolio_pct = (user.portfolio_value / user.portfolio_next_value) * 100;
+  var cash_on_hand_pct = (user.cash_on_hand / user.cash_on_hand_limit) * 100;  
 
   var level = user.level;
   var company_name = user.company_name;
@@ -75,12 +91,12 @@
     <strong class="fa-stack-1x"><%= level + 1 %></strong>
   </span>
   <div class="progress container col-sm-10 company_slider">
-    <div class="progress-bar" role="progressbar" style="width: 70%;" aria-valuenow="5" aria-valuemin="0" aria-valuemax="100">
+    <div class="progress-bar" role="progressbar" style="width: <%= portfolio_pct %>%;" aria-valuenow="<%= portfolio_pct %>" aria-valuemin="0" aria-valuemax="100">
     </div>
       <div class="company_slider_text"><%= portfolio_value %></div>
   </div>
   <div class="container" id="next_level_label">
-    Need $5,000,000 For Next Level
+    Need <%= portfolio_next_value %> For Next Level
   </div>
 
   <br><br>
@@ -93,12 +109,12 @@
     <strong class="fa-stack-1x">+</strong>
   </span>
   <div class="progress container col-sm-10 company_slider">
-    <div class="progress-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
+    <div class="progress-bar" role="progressbar" style="width: <%= cash_on_hand_pct %>%;" aria-valuenow="<%= cash_on_hand_pct %>" aria-valuemin="0" aria-valuemax="100">
     </div>
       <div class="company_slider_text"><%= cash_on_hand %></div>
   </div>
   <div class="container" id="next_level_label">
-    Limit $2,000,000
+    Limit <%= cash_on_hand_limit %>
   </div>
 
   <div class="container" id="cashtied_label">
@@ -159,7 +175,7 @@
         <div class="card">
           <div class="card-body">
             <h5 class="card-title">Groupies Balance</h5>
-            <p class="card-text" id="coin_balance_value">50<span class="fa fa-diamond"></span>
+            <p class="card-text" id="coin_balance_value"><%= groupies %><span class="fa fa-diamond"></span>
 </p>
           </div>
         </div>

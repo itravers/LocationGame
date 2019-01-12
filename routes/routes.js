@@ -40,9 +40,22 @@ module.exports = function(app, passport){
     renderJQuestion(req, res);
   });
 
+  app.get('/', function(req, res){
+    res.redirect('/console');
+  });
+
   //this is the main user console
   app.get('/console', function(req, res){
     if(req.user){
+      req.user.company_value = req.user.portfolio_value + req.user.cash_on_hand + req.user.cash_tied_up;
+      req.user.level = calculateLevel(req.user.portfolio_value);
+      req.user.portfolio_next_value = calculateNextPortfolioValue(req.user.level);
+      req.user.cash_on_hand_limit = calculateCashOnHandLimit(req.user.level);
+      console.log("companyValue: " + req.user.company_value);
+      if(req.user.cash_on_hand > req.user.cash_on_hand_limit){
+        req.user.cash_on_hand = req.user.cash_on_hand_limit;
+      }
+      req.user.save();
       res.render('console.ejs', {
         title : "Console",
         user : req.user
@@ -695,4 +708,107 @@ function calculateValue(node){
 
   var val = baseValue * 1;
   return val;
+}
+
+
+//returns the company_value needed to get to the next level
+function calculateCashOnHandLimit(level){
+  var nextValue = calculateNextPortfolioValue(level) /2;
+  return nextValue;
+}
+
+//returns the company_value needed to get to the next level
+function calculateNextPortfolioValue(level){
+  var nextValue = 0;
+  switch(level){
+    case 0:
+      nextValue = 10000;
+    break;
+    case 1:
+      nextValue = 50000;
+    break;
+    case 2:
+      nextValue = 120000;
+    break;
+    case 3:
+      nextValue = 300000;
+    break;
+    case 4:
+      nextValue = 500000;
+    break;
+    case 5:
+      nextValue = 750000;
+    break;
+    case 6:
+      nextValue = 1200000;
+    break;
+    case 7:
+      nextValue = 3000000;
+    break;
+    case 8:
+      nextValue = 5000000;
+    break;
+    case 9:
+      nextValue = 7000000;
+    break;
+    case 10:
+      nextValue = 10000000;
+    break;
+    case 11:
+      nextValue = 50000000;
+    break;
+    case 12:
+      nextValue = 75000000;
+    break;
+    case 13:
+      nextValue = 100000000;
+    break;
+    case 14:
+      nextValue = 1000000000;
+    break;
+    case 15:
+      nextValue = 5000000000;
+    break;
+  }
+  console.log("next_value: " + nextValue);
+  return nextValue;
+}
+
+//returns the level based on the portfolio value
+function calculateLevel(company_value){
+  var level = 0;
+  if(company_value >= 0 && company_value < 10000){
+    level = 0;
+  }else if(company_value >= 10000 && company_value < 50000){
+    level = 1;
+  }else if(company_value >= 50000 && company_value < 120000){
+    level = 2;
+  }else if(company_value >= 120000 && company_value < 300000){
+    level = 3;
+  }else if(company_value >= 300000 && company_value < 500000){
+    level = 4;
+  }else if(company_value >= 500000 && company_value < 750000){
+    level = 5;
+  }else if(company_value >= 750000 && company_value < 1200000){
+    level = 6;
+  }else if(company_value >= 1200000 && company_value < 3000000){
+    level = 7;
+  }else if(company_value >= 3000000 && company_value < 5000000){
+    level = 8;
+  }else if(company_value >= 5000000 && company_value < 7000000){
+    level = 9;
+  }else if(company_value >= 7000000 && company_value < 10000000){
+    level = 10;
+  }else if(company_value >= 10000000 && company_value < 50000000){
+    level = 11;
+  }else if(company_value >= 50000000 && company_value < 75000000){
+    level = 12;
+  }else if(company_value >= 75000000 && company_value < 100000000){
+    level = 13;
+  }else if(company_value >= 100000000 && company_value < 1000000000){
+    level = 14;
+  }else{
+    level = 15;
+  }
+  return level;
 }
