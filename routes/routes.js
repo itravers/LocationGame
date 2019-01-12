@@ -8,6 +8,7 @@ var hostedAddress = "http://192.168.1.197";
 // load up the quizQestions model
 var Distance = require('geo-distance');
 var Locations            = require('../models/locations');
+var Users = require('../models/user');
 var Cities            = require('../models/cities');
 var Venues            = require('../models/venues');
 var util = require('util');
@@ -99,7 +100,7 @@ module.exports = function(app, passport){
   });
 
   app.get('/scoreboard', function(req, res, done){
-    Locations.find({}, {}, ).exec(function(err, results){
+    Users.find({}, {}, ).exec(function(err, results){
       if(err) throw err;
 
       res.render('scoreboard.ejs',{
