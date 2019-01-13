@@ -70,7 +70,7 @@ module.exports = function(app, passport){
   app.get('/buyproperties', function(req, res){
     var lat = 41.08749;
     var longi = -122.717445;
-    var miles = 1000;
+    var miles = 3000;
     if(req.user){
       //first lets find a list of cities
       Cities.find({location: { $geoWithin: { $centerSphere: [[longi, lat], miles / 3963.2]}}},{},).exec(function(err, results){

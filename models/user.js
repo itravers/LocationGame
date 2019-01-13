@@ -44,6 +44,12 @@ var userSchema = mongoose.Schema({
         last_month   : {type: Number, default: 0},
         last_year    : {type: Number, default: 0}
     },
+    property           : {
+        total_properties      : {type: Number, default: 0},
+        max_properties        : {type: Number, default: 5},
+        total_pending         : {type: Number, default: 0},
+        max_pending           : {type: Number, default: 2}
+    },
     permissions      : {
       admin : {type: Boolean, default: false}
     },

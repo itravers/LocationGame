@@ -16,10 +16,31 @@
 <%
   //info here
   var cash_on_hand = user.cash_on_hand;
-  cash_on_hand_text = (cash_on_hand).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-  cash_on_hand_text = (cash_on_hand_text).substring(0, cash_on_hand_text.length - 3);
-  cash_on_hand_text = "$"+cash_on_hand_text;
+  var cash_on_hand_text = convertToMoney(cash_on_hand);
 
+  var property_cost = 382439;
+  var property_cost_text = convertToMoney(property_cost);
+
+  var property_cost_per_share = property_cost / 100;
+  var current_property_cost = property_cost_per_share * 50;
+  var affordable = false;
+  if(property_cost_per_share <= cash_on_hand){
+    affordable = true;
+  }else{
+    affordable = false;
+    current_property_cost = property_cost_per_share;
+  }
+
+  var daily_income = current_property_cost * .15;
+  var daily_cost   = current_property_cost * .1;
+  var daily_profit = daily_income - daily_cost;
+
+  function convertToMoney(number){
+    var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    money = (money).substring(0, money.length - 3);
+    money = "$"+money;
+    return money;
+  }
 
 %>
 
@@ -27,17 +48,38 @@
   <div id="buy_property_map"></div>
   <div id="cash_on_hand_text">Cash Available: <b><div id="cash_on_hand_amount"><%= cash_on_hand_text %></div></b></div>
   <hr/>
-  <div><button type="button" class="btn btn-primary btn-lg center-block" id="buy_button">BUY</button></div>
+  <% if(affordable){ %>
+    <div><button type="button" class="btn btn-primary btn-lg center-block" id="buy_button">BUY</button></div>
+    <div id="percent_to_purchase_text">Percent To Purchase:</div>
+    <div id="percent_to_purchase_value">50</div>
+    <div class="slidecontainer">
+      <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+    </div>
+  <% }else{ %>
+    <div id="percent_to_purchase_text">You Cannot Afford This</div>
+  <% } %>
+  <div id="property_price_text">Price<b><div id="property_price_value"><%= convertToMoney(current_property_cost) %></div></b></div>
+  <div class="row">
+    <div class="col-sm-6 center_gray">Daily Income</div>
+    <div class="col-sm-6 center_gray">Daily Cost</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6 center_black"><%= convertToMoney(daily_income) %></div>
+    <div class="col-sm-6 center_black"><%= convertToMoney(daily_cost) %></div>
+  </div>
 </div>
-  
-  <footer>
+
+  <div class="container col-sm-12" id="buy_property_footer">  
+  <div id="daily_profit_text">Daily Profit<div id="daily_profit_value">  <%= convertToMoney(daily_profit) %></div></div>
+  </div>
+  <footer class="fixed-bottom">
     <% include partials/footer %>
   </footer>
  <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
    integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
    crossorigin=""></script>
   <script type="text/javascript">
-    var map = L.map('buy_property_map').setView([<%= results.lat %>, <%= results.longi %>], 13);
+    var map = L.map('buy_property_map').setView([<%= results.lat %>, <%= results.longi %>], 12);
 //L.tileLayer('http://b.tilecloudmade.com/e7b61e61295a44a5b319ca0bd3150890/997/256/18/149531/108306.png', {
   L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -45,6 +87,15 @@
     id: 'mapbox.streets',
     accessToken: 'pk.eyJ1IjoiaXRyYXZlcnMiLCJhIjoiY2pxdTV0NGJmMGg1ajQzbWgwNmwyZnIwYSJ9.B_Cezeisp5K-YhjkQEYXQw'
 }).addTo(map);
+
+  var slider = document.getElementById("myRange");
+var output = document.getElementById("percent_to_purchase_value");
+output.innerHTML = slider.value + "%"; // Display the default slider value
+
+// Update the current slider value (each time you drag the slider handle)
+slider.oninput = function() {
+  output.innerHTML = this.value + "%";
+} 
   </script>
 
 </body>
