@@ -2,6 +2,11 @@
 <html>
 <head>
   <% include partials/head %>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+   integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+   crossorigin=""/>
+   <!-- Make sure you put this AFTER Leaflet's CSS -->
+
 </head>
 <body>
 <header>
@@ -10,15 +15,37 @@
 
 <%
   //info here
+  var cash_on_hand = user.cash_on_hand;
+  cash_on_hand_text = (cash_on_hand).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+  cash_on_hand_text = (cash_on_hand_text).substring(0, cash_on_hand_text.length - 3);
+  cash_on_hand_text = "$"+cash_on_hand_text;
+
 
 %>
 
 <div class="container col-sm-12">
+  <div id="buy_property_map"></div>
+  <div id="cash_on_hand_text">Cash Available: <b><div id="cash_on_hand_amount"><%= cash_on_hand_text %></div></b></div>
+  <hr/>
+  <div><button type="button" class="btn btn-primary btn-lg center-block" id="buy_button">BUY</button></div>
 </div>
   
   <footer>
     <% include partials/footer %>
   </footer>
+ <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
+   integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
+   crossorigin=""></script>
+  <script type="text/javascript">
+    var map = L.map('buy_property_map').setView([<%= results.lat %>, <%= results.longi %>], 13);
+//L.tileLayer('http://b.tilecloudmade.com/e7b61e61295a44a5b319ca0bd3150890/997/256/18/149531/108306.png', {
+  L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+    maxZoom: 18,
+    id: 'mapbox.streets',
+    accessToken: 'pk.eyJ1IjoiaXRyYXZlcnMiLCJhIjoiY2pxdTV0NGJmMGg1ajQzbWgwNmwyZnIwYSJ9.B_Cezeisp5K-YhjkQEYXQw'
+}).addTo(map);
+  </script>
 
 </body>
 </html>

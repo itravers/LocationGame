@@ -7,18 +7,48 @@ a {
 }
 
 #quizheadername {
-  font: 30px "Impact", White, sans-serif;
+  font: 60px "Impact", White, sans-serif;
   color: #FFFFFF;
+}
+
+#buy_property_map{
+  height: 300px;
+}
+
+#cash_on_hand_text{
+  font-size: 36px;
+  color: gray;
+  font-weight: bold;
+  text-align: center;
+}
+
+#cash_on_hand_amount{
+  display:inline;
+  color: black;
+}
+
+#buy_button{
+  font-size: 36px;
+  font-weight: bold;
 }
 
 .fa-bars{
   color: white;
 }
 
+.fa-6x{
+  font-size: 6rem;
+}
+
 .navbar{
   padding: 0;
   padding-left: 1rem;
   padding-right: 1rem;
+}
+
+#locationGameMenu{
+  font-size: 40px;
+  text-align: right;
 }
 
 #avatar_image{
@@ -205,7 +235,11 @@ display: inline;
 }
 
 .dropdown-left{
-  left:-300px;
+  left:-180px;
+}
+
+.dropdown-item{
+  padding-top: 10px;
 }
 
 .list-group-item{
