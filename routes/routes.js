@@ -52,10 +52,6 @@ module.exports = function(app, passport){
       req.user.level = calculateLevel(req.user.portfolio_value);
       req.user.portfolio_next_value = calculateNextPortfolioValue(req.user.level);
       req.user.cash_on_hand_limit = calculateCashOnHandLimit(req.user.level);
-      console.log("companyValue: " + req.user.company_value);
-      //if(req.user.cash_on_hand > req.user.cash_on_hand_limit){
-      //  req.user.cash_on_hand = req.user.cash_on_hand_limit;
-      //}
       req.user.save();
       res.render('console.ejs', {
         title : "Console",
@@ -125,8 +121,11 @@ module.exports = function(app, passport){
           var city_value = calculateCityValue(results);
           var price_per_share = city_value / 100;
           var purchase_price = price_per_share * shares;
-          var cash_on_hand = req.user.cash_on_hand; 
-          if(purchase_price <= cash_on_hand){
+          var cash_on_hand = req.user.cash_on_hand;
+          if(results.percent_owned + shares > 100){
+              res.send({status: "error", message: "That many shares not available"});
+              console.log("error That many shares not available");
+          }else if(purchase_price <= cash_on_hand){
             //first we create a new owner record in the property that is bought
             var newOwner = {
               owner_id  : req.user._id,
@@ -199,6 +198,32 @@ module.exports = function(app, passport){
       res.send({status: "error", message: "Not Signed In"});
     }
   }); 
+
+  app.get('/portfolio', function(req, res){
+    if(req.user){
+      var ids = [];
+      //get id's of properties owned
+      for(var i = 0; i < req.user.property.owned.length; i++){
+        ids.push(req.user.property.owned[i].property_id);
+      }
+      var obj_ids = ids.map(function(id) { return ObjectId(id); });
+      Cities.find({_id: {$in: obj_ids}},{},).exec(function(err, results){
+        //add how much i own to the properties
+        var amountIOwn = [];;
+        for(var i = req.user.property.owned.length-1; i >= 0; i--){
+          amountIOwn.push(req.user.property.owned[i].percent_owned);
+        }
+        res.render('portfolio.ejs',{
+          title: "Portfolio",
+          results: results,
+          user: req.user,
+          amountIOwn: amountIOwn
+        });
+      });
+    }else{
+      res.redirect('/login');
+    }
+  });
 
   //The main page, renders jquestion or quizquestion half time
   app.get('/:latitude/:longitude/:miles', function(req, res){
@@ -788,7 +813,6 @@ function calculateNextPortfolioValue(level){
       nextValue = 5000000000;
     break;
   }
-  console.log("next_value: " + nextValue);
   return nextValue;
 }
 

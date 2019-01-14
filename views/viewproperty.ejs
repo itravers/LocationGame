@@ -22,7 +22,8 @@
   var property_cost_text = convertToMoney(property_cost);
 
   var property_cost_per_share = property_cost / 100;
-  var current_property_cost = property_cost_per_share * 50;
+  var shares = 50;
+  var current_property_cost = property_cost_per_share * shares;
   var affordable = false;
   if(property_cost_per_share <= cash_on_hand){
     affordable = true;
@@ -34,7 +35,8 @@
   var daily_income = current_property_cost * .15;
   var daily_cost   = current_property_cost * .1;
   var daily_profit = daily_income - daily_cost;
-
+  var shares_available = 100 - results.percent_owned;
+  var initial_selection = shares_available /2;
 
   function convertToMoney(number){
     var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
@@ -61,9 +63,9 @@
   <% if(affordable){ %>
     <div><button type="button" class="btn btn-primary btn-lg center-block" id="buy_button" onclick="clickBuy()">BUY</button></div>
     <div id="percent_to_purchase_text">Percent To Purchase:</div>
-    <div id="percent_to_purchase_value">50</div>
+    <div id="percent_to_purchase_value"><%= initial_selection %></div>
     <div class="slidecontainer">
-      <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+      <input type="range" min="1" max="<%= shares_available%>" value="<%= initial_selection %>" class="slider" id="myRange">
     </div>
   <% }else{ %>
     <div id="percent_to_purchase_text">You Cannot Afford This</div>
@@ -101,6 +103,7 @@
   var daily_profit = daily_income - daily_cost;
   var cash_on_hand = <%= cash_on_hand %>;
   var buttonDisabled = false;
+  var shares;
     if(cash_on_hand < current_property_cost){
       $("#buy_button").addClass('disabled');    
       buttonDisabled = true;
@@ -140,7 +143,26 @@
   function clickBuy(){
     if(!buttonDisabled){
       if(cash_on_hand > current_property_cost){
-        alert("buyting");
+          var propertyid = "<%= results._id %>";
+          var shares = slider.value;;
+          $.ajax({
+          type: "GET",
+          url: "/buyproperty/"+propertyid+"/"+shares,
+          success: function(data){
+            if(data.status == "error"){
+              alert("Error: " + data.message);
+            }else if(data.status == "success"){
+              //alert("Success: " + data.message);
+              window.location.replace("/portfolio");
+            }
+          },
+          error: function(err){
+            console.log("error submitting problem: " + err);
+            alert(`err: ${JSON.stringify(err, undefined, 2)}`);
+          }
+        });
+      }else{
+        alert("elseerror");
       }
     }
   } 
