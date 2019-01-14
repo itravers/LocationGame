@@ -6,6 +6,10 @@ a {
   color: #00B7FF;
 }
 
+.btn-primary.disabled, .btn-primary:disabled{
+  background-color:gray;
+}
+
 #buy_property_footer {
     position: fixed;
     height: 40px;
@@ -230,7 +234,7 @@ display: inline;
 .slider {
   -webkit-appearance: none;
   width: 100%;
-  height: 50px;
+  height: 60px;
   border-radius: 55px;  
   background: #d3d3d3;
   outline: none;
@@ -242,8 +246,8 @@ display: inline;
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 55px;
-  height: 55px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%; 
   background: #4CAF50;
   cursor: pointer;

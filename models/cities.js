@@ -3,6 +3,10 @@
 // load the things we need
 var mongoose = require('mongoose');
 var random   = require('mongoose-simple-random');
+var ownersSchema = mongoose.Schema({
+  owner_id      : String,
+  percent_owned : Number
+});
 
 // define the schema for our user model
 var citiesSchema = mongoose.Schema({
@@ -14,7 +18,8 @@ var citiesSchema = mongoose.Schema({
     country_code     : String,   
     country_name     : String,
     city_type        : String,
-    percent_owned    : {type: Number, default: 0}
+    percent_owned    : {type: Number, default: 0},
+    owners           : [ownersSchema]
 },
 {
   collection: 'cities'

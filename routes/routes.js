@@ -53,9 +53,9 @@ module.exports = function(app, passport){
       req.user.portfolio_next_value = calculateNextPortfolioValue(req.user.level);
       req.user.cash_on_hand_limit = calculateCashOnHandLimit(req.user.level);
       console.log("companyValue: " + req.user.company_value);
-      if(req.user.cash_on_hand > req.user.cash_on_hand_limit){
-        req.user.cash_on_hand = req.user.cash_on_hand_limit;
-      }
+      //if(req.user.cash_on_hand > req.user.cash_on_hand_limit){
+      //  req.user.cash_on_hand = req.user.cash_on_hand_limit;
+      //}
       req.user.save();
       res.render('console.ejs', {
         title : "Console",
@@ -70,7 +70,7 @@ module.exports = function(app, passport){
   app.get('/buyproperties', function(req, res){
     var lat = 41.08749;
     var longi = -122.717445;
-    var miles = 3000;
+    var miles = 7000;
     if(req.user){
       //first lets find a list of cities
       Cities.find({location: { $geoWithin: { $centerSphere: [[longi, lat], miles / 3963.2]}}},{},).exec(function(err, results){
@@ -93,17 +93,15 @@ module.exports = function(app, passport){
     }
   });
 
-  //specific buy property page
-  app.get('/buyproperty/:propertyid', function(req, res){
+  //view a property page, with option to buy it
+  app.get('/viewproperty/:propertyid', function(req, res){
     var propertyid = req.params.propertyid;
-    //var object = new ObjectId(propertyid);
     if(req.user){
-      //Cities.find( {_id: new ObjectId(propertyid)}, {}).exec(function(err, results){
       Cities.findOne({_id: new ObjectId(propertyid)}, {}, function(err, results){
         if(err) throw err;
-        console.log(results);
-        res.render('buyproperty.ejs', {
-          title : "Buy " + results.city_name,
+        results.property_cost = calculateCityValue(results);
+        res.render('viewproperty.ejs', {
+          title : "View " + results.city_name,
           user  : req.user,
           results : results
         });
@@ -112,6 +110,95 @@ module.exports = function(app, passport){
       res.redirect('/login');
     }
   });
+
+  //user decided to buy a property, clicks buy button (backend)
+  app.get('/buyproperty/:propertyid/:shares', function(req, res){
+    var propertyid = req.params.propertyid;
+    var shares = parseFloat(req.params.shares);
+    if(req.user){
+      Cities.findOne({_id: new ObjectId(propertyid)}, {}, function(err, results){
+        if(err){
+           res.send({status: "error", message: "City Not Available"});
+        }else{
+          //no error, city is found
+          //check if user can afford this many shares of property
+          var city_value = calculateCityValue(results);
+          var price_per_share = city_value / 100;
+          var purchase_price = price_per_share * shares;
+          var cash_on_hand = req.user.cash_on_hand; 
+          if(purchase_price <= cash_on_hand){
+            //first we create a new owner record in the property that is bought
+            var newOwner = {
+              owner_id  : req.user._id,
+              percent_owned : shares
+            };
+
+            //we go through all owers of the property, already own it we
+            //add the amount we've just purchased.
+            var already_own = false;
+            for(var i = 0; i < results.owners.length; i++){
+              //see if user id is == to owner.id
+              if(results.owners[i].owner_id == req.user._id){
+                //we already own a share, let just add to it
+                results.owners[i].percent_owned += shares;
+                already_own = true;
+                break;
+              }
+            }
+            //if we don't already own it, we save the newOwner record
+            if(!already_own){
+              results.owners.push(newOwner);
+            }
+          
+            //now we calculate the percent_owned for the city
+            var percent_owned = 0;
+            for(var i = 0; i < results.owners.length; i++){
+              percent_owned += results.owners[i].percent_owned;
+            }
+            results.percent_owned = percent_owned;
+                      
+            results.save(function(err){
+              //res.redirect('/profile');
+              //now we add the property record to the user
+              already_own = false;
+              for(var i = 0; i < req.user.property.owned.length; i++){
+                //check to make sure we don't already own this
+                if(req.user.property.owned[i].property_id == results._id){
+                  req.user.property.owned[i].percent_owned += shares;
+                  already_own = true;
+                } 
+              }
+  
+              //the user does not already own the property. create and save new re
+              if(!already_own){
+                //now we create a new property.owned record for the user
+                var newPropertyOwned = {
+                  property_id  : results._id,
+                  percent_owned : shares,
+                  total_earned  : 0
+                };  
+
+                req.user.property.owned.push(newPropertyOwned);
+                req.user.property.total_properties = req.user.property.total_properties + 1;
+                
+              }
+              //increase user.portfolio_value by amound purchased
+              req.user.portfolio_value += purchase_price;
+              req.user.cash_on_hand -= purchase_price;
+              req.user.save(function(err){
+                res.send({status: "success", message: "You've Purchased It", results: results, results2: req.user});
+              });
+            });
+  
+          }else{
+            res.send({status: "error", message: "You Cannot Afford That!"});
+          }
+        }
+      });
+    }else{
+      res.send({status: "error", message: "Not Signed In"});
+    }
+  }); 
 
   //The main page, renders jquestion or quizquestion half time
   app.get('/:latitude/:longitude/:miles', function(req, res){
@@ -742,4 +829,64 @@ function calculateLevel(company_value){
     level = 15;
   }
   return level;
+}
+
+/*
+  Calculates the value of a city
+  Based on it's city_type and
+  it's distance from coffee creek
+*/
+function calculateCityValue(city){
+  var coffeeCreek = {
+    lat: 41.08749,
+    lon: -122.717445
+  }
+  var cityLoc = {
+    lat: city.lat,
+    lon: city.longi
+  }
+  
+  var base = 100000;
+  var city_amt = getCityAmt(city.city_type);
+  var distance = Distance.between(cityLoc, coffeeCreek);
+  var distance_multiplier = distanceFunction(distance);
+  var value = base * city_amt;
+  value = value * distance_multiplier;
+  return value;
+}
+
+//returns a multiplier based on city_type
+function getCityAmt(city_type){
+  var returnVal = 0;
+  switch(city_type){
+    case "Other":
+      returnVal = 1;
+    break;
+    case "Provincial capital":
+      returnVal = 50;
+    break;
+    case "Provincial capital enclave":
+      returnVal = 175;
+    break;
+    case "National and provincial capital":
+      returnVal = 250;
+    break;
+    case "National capital":
+      returnVal = 500;
+    break;
+    case "National capital and provincial capital enclave":
+      returnVal = 1000;
+    break;
+  }
+  return returnVal;
+}
+
+function distanceFunction(distance){
+  var returnVal;
+  //returnVal = -0.8 * Math.log(distance * 100000) + 20;
+  //returnVal = 100 / (.004 * (distance + 300));
+  //returnVal = (-.001 * (distance*6372.8)) + 50;
+  returnVal = (-1/220) * (distance * 6372.8) + 50;
+  console.log("distance: " + (distance*6372.8) + "  multiplier: " + returnVal);
+  return returnVal;
 }

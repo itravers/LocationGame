@@ -38,7 +38,7 @@
       var percent_owned = results[i].percent_owned*100;
       var _id = results[i]._id;
     %>
-    <a href="/buyproperty/<%= _id %>"><li class="list-group-item"><span class="fa fa-building"></span> <%= city_name %><span class="badge"><%= percent_owned %>% Owned</span></li></a>
+    <a href="/viewproperty/<%= _id %>"><li class="list-group-item"><span class="fa fa-building"></span> <%= city_name %><span class="badge"><%= percent_owned %>% Owned</span></li></a>
 
     <% } %>
     <a href="/"><li class="list-group-item"><span class="fa fa-building"></span> City of Weed <span class="badge">100% Owned</span></li></a>

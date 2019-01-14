@@ -3,11 +3,10 @@
 var mongoose = require('mongoose');
 var bcrypt   = require('bcrypt-nodejs');
 
-var historySchema = mongoose.Schema({
-  type          : String,
-  qid           : mongoose.Schema.Types.ObjectId,
-  wrongattempts : Number,
-  rightattempts : Number
+var properties_ownedSchema = mongoose.Schema({
+  property_id          : String,
+  percent_owned        : Number,
+  total_earned         : Number
 });
 
 // define the schema for our user model
@@ -48,7 +47,8 @@ var userSchema = mongoose.Schema({
         total_properties      : {type: Number, default: 0},
         max_properties        : {type: Number, default: 5},
         total_pending         : {type: Number, default: 0},
-        max_pending           : {type: Number, default: 2}
+        max_pending           : {type: Number, default: 2},
+        owned                 : [properties_ownedSchema]
     },
     permissions      : {
       admin : {type: Boolean, default: false}
