@@ -92,13 +92,13 @@
   var cash_on_hand = <%= cash_on_hand %>;
   var buttonDisabled = false;
   var shares;
-    if(cash_on_hand < current_property_cost){
-      $("#buy_button").addClass('disabled');    
-      buttonDisabled = true;
-    }else{
-      $("#buy_button").removeClass('disabled');     
-      buttonDisabled = false;
-    }
+  //  if(cash_on_hand < current_property_cost){
+  //    $("#buy_button").addClass('disabled');    
+  //    buttonDisabled = true;
+  //  }else{
+  //    $("#buy_button").removeClass('disabled');     
+  //    buttonDisabled = false;
+  //  }
   // Update the current slider value (each time you drag the slider handle)
   slider.oninput = function() {
     output.innerHTML = this.value + "%";
@@ -112,13 +112,13 @@
     $("#daily_profit_value").text(convertToMoney(daily_profit));
 
     //grey out buy button if cannot afford
-    if(cash_on_hand < current_property_cost){
-      $("#buy_button").addClass('disabled');    
-      buttonDisabled = true;
-    }else{
-      $("#buy_button").removeClass('disabled');     
-      buttonDisabled = false;
-    }
+  //  if(cash_on_hand < current_property_cost){
+  //    $("#buy_button").addClass('disabled');    
+  //    buttonDisabled = true;
+  //  }else{
+  //    $("#buy_button").removeClass('disabled');     
+  //    buttonDisabled = false;
+  //  }
   }
 
   function convertToMoney(number){
@@ -129,8 +129,6 @@
   }
 
   function clickSell(){
-    if(!buttonDisabled){
-      if(cash_on_hand > current_property_cost){
           var propertyid = "<%= results._id %>";
           var shares = slider.value;;
           $.ajax({
@@ -149,10 +147,6 @@
             alert(`err: ${JSON.stringify(err, undefined, 2)}`);
           }
         });
-      }else{
-        alert("elseerror");
-      }
-    }
   } 
   </script>
 

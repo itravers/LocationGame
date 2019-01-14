@@ -140,7 +140,10 @@ module.exports = function(app, passport){
         }
       }
     }
-    
+   
+    console.log("sharesOwned:  " + sharesOwned);
+    console.log("sharesToSell: " + sharesToSell);
+ 
     if(!req.user){ //make sure user is signed in
       //user is not signed in, send error
       res.send({status: "error", message: "User Not Signed In!"});
@@ -153,16 +156,18 @@ module.exports = function(app, passport){
           res.send({status: "error", message: "City Not Available"});
           return;
         }
-      
+        
+        console.log(" premodify req.user.property.owned " + req.user.property.owned);      
+
         //1. modify user
         //loop through user.property.owned and remove any matches
         for(var i = 0; i < req.user.property.owned.length; i++){
           if(req.user.property.owned[i].property_id == propertyid){
-            if(sharesToSell = sharesOwned){
+            if(sharesToSell == sharesOwned){
               //we found a match, remove it from the array
               req.user.property.owned.splice(i, 1);
-              //chage user.total_properties
-              req.user.total_properties = req.user.total_properties - 1; 
+              //decrease properties owned
+              req.user.property.total_properties -= 1;
               break;
             }else{
               //we found a match, change percent owned
@@ -182,6 +187,7 @@ module.exports = function(app, passport){
 
         //change cash value
         req.user.cash_on_hand = req.user.cash_on_hand + cost;
+
         req.user.save(function(err){
           if(err){
             res.send({status: "error", message: "City Not Available"});
@@ -191,7 +197,7 @@ module.exports = function(app, passport){
           //loop through result.owners and remove match
           for(var i = 0; i < results.owners.length; i++){
             if(req.user._id == results.owners[i].owner_id){
-              if(sharesToSell = sharesOwned){
+              if(sharesToSell == sharesOwned){
                 //we have a match, remove it
                 results.owners.splice(i, 1);
                 break;
@@ -307,6 +313,8 @@ module.exports = function(app, passport){
   }); 
 
   app.get('/portfolio', function(req, res){
+    var lat = 41.08749;
+    var longi = -122.717445;
     if(req.user){
       var ids = [];
       //get id's of properties owned
@@ -315,10 +323,15 @@ module.exports = function(app, passport){
       }
       var obj_ids = ids.map(function(id) { return ObjectId(id); });
       Cities.find({_id: {$in: obj_ids}},{},).exec(function(err, results){
+   //     var myLoc = {lat: lat, lon: longi};
+   //     console.log("sorting cities...");
+   //     results = mergeSort(results, myLoc);
+   //     console.log("done sorting cities");
         //add how much i own to the properties
+        /* this logic is wrong
         var amountIOwn = [];
         var totalEarned = [];
-        for(var i = 0; i < req.user.property.owned.length; i++){
+        for(var i = req.user.property.owned.length-1; i >= 0; i--){
           amountIOwn.push(req.user.property.owned[i].percent_owned);
           totalEarned.push(req.user.property.owned[i].total_earned);
         }
@@ -327,6 +340,29 @@ module.exports = function(app, passport){
         for(var i = 0; i < results.length; i++){
           propertyCost.push(calculateCityValue(results[i]));
         }
+        */
+        var myLoc = {lat: lat, lon: longi};
+        console.log("sorting cities...");
+        results = mergeSort(results, myLoc);
+        console.log("done sorting cities");
+
+        //double loop, matching user.property.owned[j] to results[i]
+        var amountIOwn = [];
+        var totalEarned = [];
+        var propertyCost = [];// = calculateCityValue(results);
+        for(var i = 0; i < results.length; i++){
+          for(var j = 0; j < req.user.property.owned.length; j++){
+            //find a matching propertyid
+            if(results[i]._id == req.user.property.owned[j].property_id){
+              console.log("totalEarned: " + req.user.property.owned[j].total_earned); 
+              amountIOwn.push(req.user.property.owned[j].percent_owned);
+              totalEarned.push(req.user.property.owned[j].total_earned);
+              propertyCost.push(calculateCityValue(results[i]));
+              break;
+            }
+          } 
+        }
+        console.log("amountIOwn: " + amountIOwn);
         res.render('portfolio.ejs',{
           title: "Portfolio",
           results: results,
