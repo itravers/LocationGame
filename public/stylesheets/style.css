@@ -6,6 +6,20 @@ a {
   color: #00B7FF;
 }
 
+#portfolio_info{
+  display: inline;
+  color:gray;
+  font-size: 38px;
+  float:right;
+  text-align: right;
+  margin-top: -20px;
+}
+
+#property_profit{
+  display: inline;
+  font-size: 42px;
+}
+
 .btn-primary.disabled, .btn-primary:disabled{
   background-color:gray;
 }
@@ -342,7 +356,7 @@ display: inline;
 
 .list-group-item{
   padding: 1.75rem 1.25rem;
-  font-size: 40px;
+  font-size: 50px;
   font-weight: bold;
   border-radius: .50rem;
 }
@@ -369,6 +383,10 @@ display: inline;
   font-size:22px;
   font-weight: bold;
   float: right;
+}
+
+#largebadge{
+  width: 100%;
 }
 
 .col-centered{

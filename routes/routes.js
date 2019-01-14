@@ -209,15 +209,24 @@ module.exports = function(app, passport){
       var obj_ids = ids.map(function(id) { return ObjectId(id); });
       Cities.find({_id: {$in: obj_ids}},{},).exec(function(err, results){
         //add how much i own to the properties
-        var amountIOwn = [];;
-        for(var i = req.user.property.owned.length-1; i >= 0; i--){
+        var amountIOwn = [];
+        var totalEarned = [];
+        for(var i = 0; i < req.user.property.owned.length; i++){
           amountIOwn.push(req.user.property.owned[i].percent_owned);
+          totalEarned.push(req.user.property.owned[i].total_earned);
+        }
+        var propertyCost = [];// = calculateCityValue(results);
+        //calculate propertyCosts in a parallel array
+        for(var i = 0; i < results.length; i++){
+          propertyCost.push(calculateCityValue(results[i]));
         }
         res.render('portfolio.ejs',{
           title: "Portfolio",
           results: results,
           user: req.user,
-          amountIOwn: amountIOwn
+          amountIOwn: amountIOwn,
+          totalEarned: totalEarned,
+          propertyCost: propertyCost
         });
       });
     }else{

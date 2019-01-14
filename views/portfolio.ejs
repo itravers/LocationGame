@@ -9,7 +9,14 @@
 </header>
 
 <%
-  //info here
+  function convertToMoney(number){
+    if(number == 0) return "$0";
+    var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    money = (money).substring(0, money.length - 3);
+    money = "$"+money;
+    return money;
+  }
+
 %>
 
 <div class="container col-sm-12">
@@ -36,9 +43,21 @@
     <%
       var city_name = results[i].city_name;
       var percent_owned = amountIOwn[i];
+      var total_earned = totalEarned[i];
+      var property_cost = (propertyCost[i]/100) * percent_owned;;
       var _id = results[i]._id;
     %>
-    <a href="/sellproperty/<%= _id %>"><li class="list-group-item"><span class="fa fa-building"></span> <%= city_name %><span class="badge"><%= percent_owned %>% Owned</span></li></a>
+   
+    <a href="/sellproperty/<%= _id %>">
+      <li class="list-group-item">
+        <span class="fa fa-building"></span> <%= city_name %>
+          <div class="container col-sm-6" id="portfolio_info">
+        <span>
+        <div id="property_profit">Profit: </div><b><%= convertToMoney(total_earned) %></b></span>
+        <span class="badge" id="largebadge"><%= percent_owned %>% Owned @ <%= convertToMoney(property_cost) %></span>
+        </div>
+      </li>
+    </a>
 
     <% } %>
   </ul>
