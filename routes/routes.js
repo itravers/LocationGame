@@ -107,6 +107,113 @@ module.exports = function(app, passport){
     }
   });
 
+  //view a property page to sell it
+  app.get('/viewsellproperty/:propertyid', function(req, res){
+    var propertyid = req.params.propertyid;
+    if(req.user){
+      Cities.findOne({_id: new ObjectId(propertyid)}, {}, function(err, results){
+        if(err) throw err;
+        results.property_cost = calculateCityValue(results);
+        res.render('sellproperty.ejs', {
+          title : "View " + results.city_name,
+          user  : req.user,
+          results : results
+        });
+      });
+    }else{
+      res.redirect('/login');
+    }
+  });
+
+  /*user decided to sell shares of a property
+  */
+  app.get('/sellproperty/:propertyid/:shares', function(req, res){
+    //get parameters
+    var propertyid = req.params.propertyid;
+    var sharesToSell = parseFloat(req.params.shares);
+    var sharesOwned = 0;
+    //find shares of this property the user already owns
+    if(req.user){
+      for(var i = 0; i < req.user.property.owned.length; i++){
+        if(propertyid == req.user.property.owned[i].property_id){
+          sharesOwned = req.user.property.owned[i].percent_owned;
+        }
+      }
+    }
+    
+    if(!req.user){ //make sure user is signed in
+      //user is not signed in, send error
+      res.send({status: "error", message: "User Not Signed In!"});
+    }else if(sharesOwned < sharesToSell){ //check user has shares to sell
+      res.send({status: "error", message: "sharesOwned: " + sharesOwned + " sharesToSell: "+sharesToSell });
+    }else{
+      Cities.findOne({_id: new ObjectId(propertyid)}, {}, function(err, results){
+        //process request
+        if(err){
+          res.send({status: "error", message: "City Not Available"});
+          return;
+        }
+      
+        //1. modify user
+        //loop through user.property.owned and remove any matches
+        for(var i = 0; i < req.user.property.owned.length; i++){
+          if(req.user.property.owned[i].property_id == propertyid){
+            if(sharesToSell = sharesOwned){
+              //we found a match, remove it from the array
+              req.user.property.owned.splice(i, 1);
+              //chage user.total_properties
+              req.user.total_properties = req.user.total_properties - 1; 
+              break;
+            }else{
+              //we found a match, change percent owned
+              req.user.property.owned[i].percent_owned -= sharesToSell;
+              break;
+            }
+          }
+        } 
+      
+
+        var city_value = calculateCityValue(results);
+        var cost_per_share = city_value / 100;
+        var cost = cost_per_share * sharesToSell;
+       
+         //change portfolio_value
+        req.user.portfolio_value = req.user.portfolio_value - cost;
+
+        //change cash value
+        req.user.cash_on_hand = req.user.cash_on_hand + cost;
+        req.user.save(function(err){
+          if(err){
+            res.send({status: "error", message: "City Not Available"});
+            return;
+          }
+          //2. modify property
+          //loop through result.owners and remove match
+          for(var i = 0; i < results.owners.length; i++){
+            if(req.user._id == results.owners[i].owner_id){
+              if(sharesToSell = sharesOwned){
+                //we have a match, remove it
+                results.owners.splice(i, 1);
+                break;
+              }else{
+                results.owners[i].percent_owned -= sharesToSell;
+                break;
+              }
+            } 
+          }
+          results.percent_owned = results.percent_owned - sharesToSell;
+          results.save(function(err){
+            if(err){
+              res.send({status: "error", message: "City Not Available"});
+              return;
+            }
+            res.send({status: "success", message: "Success!"});
+          });
+        });
+      });
+    }
+  });
+
   //user decided to buy a property, clicks buy button (backend)
   app.get('/buyproperty/:propertyid/:shares', function(req, res){
     var propertyid = req.params.propertyid;
@@ -234,6 +341,7 @@ module.exports = function(app, passport){
     }
   });
 
+/*
   //The main page, renders jquestion or quizquestion half time
   app.get('/:latitude/:longitude/:miles', function(req, res){
      var lat = parseFloat(req.params.latitude);
@@ -261,6 +369,7 @@ module.exports = function(app, passport){
     });
   });
 
+*/
   app.get('/mapTest', function(req, res){
     res.render('mapTest.ejs',{
       title: "Map Test",
