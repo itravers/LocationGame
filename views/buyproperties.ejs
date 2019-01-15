@@ -9,7 +9,30 @@
 </header>
 
 <%
-  //info here
+  function getIconClass(city_type){
+    var returnVal = "fa-cube"
+    switch(city_type){
+      case "Other":
+        returnVal = "fa-cube";
+      break;
+      case "Provincial capital":
+        returnVal = "fa-cubes";
+      break;
+      case "Provincial capital enclave":
+        returnVal = "fa-building";
+      break;
+      case "National and provincial capital":
+        returnVal = "fa-bank";
+      break;
+      case "National capital":
+        returnVal = "fa-globe";
+      break;
+      case "National capital and provincial capital enclave":
+        returnVal = "fa-dollar";
+      break;
+    }
+    return returnVal;
+  }
 %>
 
 <div class="container col-sm-12">
@@ -37,11 +60,11 @@
       var city_name = results[i].city_name;
       var percent_owned = results[i].percent_owned;
       var _id = results[i]._id;
+      var icon_class = getIconClass(results[i].city_type);
     %>
-    <a href="/viewproperty/<%= _id %>"><li class="list-group-item"><span class="fa fa-building"></span> <%= city_name %><span class="badge"><%= percent_owned %>% Owned</span></li></a>
+    <a href="/viewproperty/<%= _id %>"><li class="list-group-item"><span class="fa <%= icon_class %>"></span> <%= city_name %><span class="badge"><%= percent_owned %>% Owned</span></li></a>
 
     <% } %>
-    <a href="/"><li class="list-group-item"><span class="fa fa-building"></span> City of Weed <span class="badge">100% Owned</span></li></a>
   </ul>
 </div>
   

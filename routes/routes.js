@@ -92,7 +92,9 @@ module.exports = function(app, passport){
   app.get('/buyproperties', function(req, res){
     var lat = 41.08749;
     var longi = -122.717445;
-    var miles = 7000;
+    //var lat = 34.002503;
+    //var longi = -118.239809;
+    var miles = 400;
     if(req.user){
       //first lets find a list of cities
       Cities.find({location: { $geoWithin: { $centerSphere: [[longi, lat], miles / 3963.2]}}},{},).exec(function(err, results){
@@ -102,6 +104,8 @@ module.exports = function(app, passport){
         console.log("sorting cities...");
         results = mergeSort(results, myLoc);
         console.log("done sorting cities");
+        //limit the length of the results, this will be a skill
+        results.length = 300;
         res.render('buyproperties.ejs', {
           title : "Buy Properties",
           user  : req.user,
