@@ -1051,6 +1051,23 @@ function calculateCityValue(city){
   var distance_multiplier = distanceFunction(distance);
   var value = base * city_amt;
   value = value * distance_multiplier;
+
+  //multiply by a random value that was generated in the database
+  //the value is between -1 and 1
+  //anything that is negative gets multiplied by -10  
+  //the final thing is multiplied by value
+  var rand_from_db = city.rand;
+  var multiplier = 1;
+  if(rand_from_db < 0){
+    multiplier = rand_from_db * -10;
+  }else{
+    multiplier = rand_from_db;
+  }
+
+  if(multipier = 0) multiplier = 1;
+  value = value * multiplier;;
+
+
   return value;
 }
 

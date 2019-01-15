@@ -19,6 +19,7 @@ var citiesSchema = mongoose.Schema({
     country_name     : String,
     city_type        : String,
     percent_owned    : {type: Number, default: 0},
+    rand             : Number,
     owners           : [ownersSchema]
 },
 {
