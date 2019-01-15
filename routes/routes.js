@@ -323,24 +323,6 @@ module.exports = function(app, passport){
       }
       var obj_ids = ids.map(function(id) { return ObjectId(id); });
       Cities.find({_id: {$in: obj_ids}},{},).exec(function(err, results){
-   //     var myLoc = {lat: lat, lon: longi};
-   //     console.log("sorting cities...");
-   //     results = mergeSort(results, myLoc);
-   //     console.log("done sorting cities");
-        //add how much i own to the properties
-        /* this logic is wrong
-        var amountIOwn = [];
-        var totalEarned = [];
-        for(var i = req.user.property.owned.length-1; i >= 0; i--){
-          amountIOwn.push(req.user.property.owned[i].percent_owned);
-          totalEarned.push(req.user.property.owned[i].total_earned);
-        }
-        var propertyCost = [];// = calculateCityValue(results);
-        //calculate propertyCosts in a parallel array
-        for(var i = 0; i < results.length; i++){
-          propertyCost.push(calculateCityValue(results[i]));
-        }
-        */
         var myLoc = {lat: lat, lon: longi};
         console.log("sorting cities...");
         results = mergeSort(results, myLoc);
@@ -375,6 +357,15 @@ module.exports = function(app, passport){
     }else{
       res.redirect('/login');
     }
+  });
+
+  app.get('/simulateTimeStep/:numsteps', function(req, res){
+    var numsteps = parseInt(req.params.numsteps);
+    for(var i = 0; i < numsteps; i++){
+      console.log("timestepping...");
+      timeStep();
+    }
+    res.send(numsteps + " tick[s] done");
   });
 
 /*
@@ -1068,3 +1059,78 @@ function distanceFunction(distance){
   console.log("distance: " + (distance*6372.8) + "  multiplier: " + returnVal);
   return returnVal;
 }
+
+/*simulates a timestep in the game
+  goes through every players property and generates cash
+  based on what the player ownes
+*/
+function timeStep(res){
+  //loop through all users
+  //sub loop through users owned propertys
+  //find matches to cities
+  //calculate how much the player owns, how much that is worth
+  //use calculations in viewProperty to calculate new cash
+  //update new cash, and how much each property has made, and 
+  //update user.income.last_day
+  Users.find({ },{},).exec(function(err, allusers){
+    if(err)throw err;
+    //get a list of each property id any user has access to
+    var all_properties_owned_ids = [];
+    for(var i = 0; i < allusers.length; i++){
+      //loop through each users user.property.owned
+      for(var j = 0; j < allusers[i].property.owned.length; j++){
+        all_properties_owned_ids.push(allusers[i].property.owned[j].property_id);
+      }
+    }
+    //now all_properties_owned_ids has the id of every property a user owns
+    //lets query the database for all cities with those id's
+      var obj_ids = all_properties_owned_ids.map(function(id) { return ObjectId(id); });
+      Cities.find({_id: {$in: obj_ids}},{},).exec(function(err, allcities){
+        //allcities now has every city that is owned
+        //loop through each user.property.owned, find it's property_id
+        //get the cooresponding info from allcities
+        for(i = 0; i < allusers.length; i++){
+          for(var j = 0; j < allusers[i].property.owned.length; j++){
+            //now loop through all cities and find the cooresponding id
+            for(var k = 0; k < allcities.length; k++){
+              if(allusers[i].property.owned[j].property_id == allcities[k]._id){
+                //we've found a match
+                var city_value = calculateCityValue(allcities[k]);
+                var city_value_per_share = city_value / 100;
+                var shares_owned = allusers[i].property.owned[j].percent_owned;
+                var value_city_owned = shares_owned * city_value_per_share;
+                //console.log("user: " + allusers[i].company_name + " owns " + value_city_owned + " of " + allcities[k].city_name);
+
+                //now we update cash earned and user.income.last_day, and property.owned cash earnedi
+                var daily_income = value_city_owned * .15;
+                var daily_cost   = value_city_owned * .1;
+                var daily_profit = daily_income - daily_cost;
+                var cash_earned = daily_profit;
+
+                  allusers[i].property.owned[j].total_earned += cash_earned;
+                  allusers[i].income.last_day += cash_earned;
+                  allusers[i].cash_on_hand += cash_earned;
+                  allusers[i].save();
+              }
+            }
+          }
+        }
+      });
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
