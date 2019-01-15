@@ -13,6 +13,31 @@ var Cities            = require('../models/cities');
 var Venues            = require('../models/venues');
 var util = require('util');
 var ObjectId = (require('mongoose').Types.ObjectId);
+var schedule = require('node-schedule');
+var ticks = 0;
+
+var j = schedule.scheduleJob('* * * * *', function(){
+  var delayTime = 15000;
+  timeStep();
+  delay(function(){
+    timeStep();
+    delay(function(){
+      timeStep();
+      delay(function(){
+        timeStep();
+      }, delayTime ); // end delay
+    }, delayTime ); // end delay
+  
+  }, delayTime ); // end delay
+});
+
+var delay = ( function() {
+    var timer = 0;
+    return function(callback, ms) {
+        clearTimeout (timer);
+        timer = setTimeout(callback, ms);
+    };
+})();
 
 module.exports = function(app, passport){
 
@@ -55,7 +80,8 @@ module.exports = function(app, passport){
       req.user.save();
       res.render('console.ejs', {
         title : "Console",
-        user : req.user
+        user : req.user,
+        ticks: ticks
       });
     }else{
       res.redirect('/login');
@@ -1056,7 +1082,7 @@ function distanceFunction(distance){
   //returnVal = 100 / (.004 * (distance + 300));
   //returnVal = (-.001 * (distance*6372.8)) + 50;
   returnVal = (-1/220) * (distance * 6372.8) + 50;
-  console.log("distance: " + (distance*6372.8) + "  multiplier: " + returnVal);
+  //console.log("distance: " + (distance*6372.8) + "  multiplier: " + returnVal);
   return returnVal;
 }
 
@@ -1064,7 +1090,9 @@ function distanceFunction(distance){
   goes through every players property and generates cash
   based on what the player ownes
 */
-function timeStep(res){
+function timeStep(){
+  ticks++;
+  console.log("timeStep(): " + ticks);
   //loop through all users
   //sub loop through users owned propertys
   //find matches to cities
@@ -1108,8 +1136,24 @@ function timeStep(res){
                 var cash_earned = daily_profit;
 
                   allusers[i].property.owned[j].total_earned += cash_earned;
-                  allusers[i].income.last_day += cash_earned;
                   allusers[i].cash_on_hand += cash_earned;
+                 
+                   //keep income record
+                  if(ticks % 4 == 0){ //a day has passed
+                    allusers[i].income.last_week += allusers[i].income.last_day;
+                    allusers[i].income.last_day = 0;
+                  }
+
+                  if(ticks % 28 == 0){//a week has passed
+                    allusers[i].income.last_month += allusers[i].income.last_week;
+                    allusers[i].income.last_week = 0;
+                  }
+
+                  if(ticks % 120){//a month has passed
+                    allusers[i].income.last_year += allusers[i].income.last_month;
+                    allusers[i].income.last_month = 0;
+                  }
+                  allusers[i].income.last_day += cash_earned;
                   allusers[i].save();
               }
             }
