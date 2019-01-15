@@ -1137,26 +1137,31 @@ function timeStep(){
 
                   allusers[i].property.owned[j].total_earned += cash_earned;
                   allusers[i].cash_on_hand += cash_earned;
+                  
+                  if(ticks % 120 == 0){//a month has passed
+                    //console.log("month to year: " + allusers[i].income.last_month);
+                    allusers[i].income.last_year += allusers[i].income.last_month;
+                    allusers[i].income.last_month = 0;
+                  }
+                  
+                  if(ticks % 28 == 0){//a week has passed
+                    //console.log("week to month: " + allusers[i].income.last_week);
+                    allusers[i].income.last_month += allusers[i].income.last_week;
+                    allusers[i].income.last_week = 0;
+                  }
                  
                    //keep income record
                   if(ticks % 4 == 0){ //a day has passed
+                    //console.log("day to week: " + allusers[i].income.last_day);
                     allusers[i].income.last_week += allusers[i].income.last_day;
                     allusers[i].income.last_day = 0;
                   }
 
-                  if(ticks % 28 == 0){//a week has passed
-                    allusers[i].income.last_month += allusers[i].income.last_week;
-                    allusers[i].income.last_week = 0;
-                  }
-
-                  if(ticks % 120){//a month has passed
-                    allusers[i].income.last_year += allusers[i].income.last_month;
-                    allusers[i].income.last_month = 0;
-                  }
                   allusers[i].income.last_day += cash_earned;
-                  allusers[i].save();
+                  break;
               }
             }
+                  allusers[i].save();
           }
         }
       });
