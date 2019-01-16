@@ -9,27 +9,20 @@
 </header>
 
 <%
-  function getIconClass(city_type){
+  function getIconClass(property_cost){
     var returnVal = "fa-cube"
-    switch(city_type){
-      case "Other":
-        returnVal = "fa-cube";
-      break;
-      case "Provincial capital":
-        returnVal = "fa-cubes";
-      break;
-      case "Provincial capital enclave":
-        returnVal = "fa-building";
-      break;
-      case "National and provincial capital":
-        returnVal = "fa-bank";
-      break;
-      case "National capital":
-        returnVal = "fa-globe";
-      break;
-      case "National capital and provincial capital enclave":
-        returnVal = "fa-dollar";
-      break;
+    if(property_cost < 80000){
+      returnVal = "fa-cube";
+    }else if(property_cost >= 80000 && property_cost < 1000000){
+      returnVal = "fa-cubes";
+    }else if(property_cost >= 1000000 && property_cost < 10000000){
+      returnVal = "fa-building";
+    }else if(property_cost >= 10000000 && property_cost < 100000000){
+      returnVal = "fa-bank";
+    }else if(property_cost >= 100000000 && property_cost < 1000000000){
+      returnVal = "fa-globe";
+    }else if(property_cost >= 1000000000){
+      returnVal = "fa-dollar";
     }
     return returnVal;
   }
@@ -55,16 +48,18 @@
     </div>
   </div>
   <ul class="list-group">
-    <% for(var i = 0; i < results.length; i++){ %>
     <%
+    for(var i = 0; i < results.length; i++){
       var city_name = results[i].city_name;
       var percent_owned = results[i].percent_owned;
       var _id = results[i]._id;
-      var icon_class = getIconClass(results[i].city_type);
+      var property_cost = results[i].property_cost;
+      var icon_class = getIconClass(results[i].property_cost);
+      //var icon_class = getIconClass(results[i].city_type);
     %>
-    <a href="/viewproperty/<%= _id %>"><li class="list-group-item"><span class="fa <%= icon_class %>"></span> <%= city_name %><span class="badge"><%= percent_owned %>% Owned</span></li></a>
-
-    <% } %>
+    <a href="/viewproperty/<%= _id %>"><li class="list-group-item"><span class="fa wide_span <%= icon_class %>"></span> <%= city_name %><span class="badge"><%= percent_owned %>% Owned</span></li></a>
+    <% } 
+    %>
   </ul>
 </div>
   

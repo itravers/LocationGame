@@ -99,6 +99,8 @@ module.exports = function(app, passport){
       //first lets find a list of cities
       Cities.find({location: { $geoWithin: { $centerSphere: [[longi, lat], miles / 3963.2]}}},{},).exec(function(err, results){
         if(err) throw err;
+       
+      
         //now we want to sort results based on location
         var myLoc = {lat: lat, lon: longi};
         console.log("sorting cities...");
@@ -106,6 +108,9 @@ module.exports = function(app, passport){
         console.log("done sorting cities");
         //limit the length of the results, this will be a skill
         results.length = 300;
+        for(var i = 0; i < results.length; i++){ 
+          results[i].property_cost = calculateCityValue(results[i]);
+        }  
         res.render('buyproperties.ejs', {
           title : "Buy Properties",
           user  : req.user,
@@ -1059,9 +1064,19 @@ function calculateCityValue(city){
   var rand_from_db = city.rand;
   var multiplier = 1;
   if(rand_from_db < 0){
-    multiplier = rand_from_db * -10;
+    multiplier = rand_from_db * -100;
   }else{
-    multiplier = rand_from_db;
+    if(rand_from_db >= .4 && rand_from_db < .5){
+      multiplier = 100000;
+    }else if(rand_from_db >= .1 && rand_from_db < .3){
+      multiplier = rand_from_db * .001;
+    }else if(rand_from_db >= .3 && rand_from_db < .4){
+      multiplier = rand_from_db * .01;
+    }else if(rand_from_db >= .5 && rand_from_db < .8){
+      multiplier = rand_from_db * .1;
+    }else{
+      multiplier = rand_from_db;
+    }
   }
 
   if(multipier = 0) multiplier = 1;
@@ -1079,19 +1094,24 @@ function getCityAmt(city_type){
       returnVal = 1;
     break;
     case "Provincial capital":
-      returnVal = 50;
-    break;
-    case "Provincial capital enclave":
-      returnVal = 175;
-    break;
-    case "National and provincial capital":
-      returnVal = 250;
-    break;
-    case "National capital":
+      //returnVal = 50;
       returnVal = 500;
     break;
+    case "Provincial capital enclave":
+     // returnVal = 175;
+      returnVal = 2500;
+    break;
+    case "National and provincial capital":
+      //returnVal = 250;
+      returnVal = 10000;
+    break;
+    case "National capital":
+      //returnVal = 500;
+      returnVal = 50000;
+    break;
     case "National capital and provincial capital enclave":
-      returnVal = 1000;
+      //returnVal = 1000;
+      returnVal = 1000000;
     break;
   }
   return returnVal;
@@ -1151,7 +1171,7 @@ function timeStep(){
                 //console.log("user: " + allusers[i].company_name + " owns " + value_city_owned + " of " + allcities[k].city_name);
 
                 //now we update cash earned and user.income.last_day, and property.owned cash earnedi
-                var daily_income = value_city_owned * .15;
+                var daily_income = value_city_owned * .11;
                 var daily_cost   = value_city_owned * .1;
                 var daily_profit = daily_income - daily_cost;
                 var cash_earned = daily_profit;

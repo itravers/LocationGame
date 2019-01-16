@@ -6,6 +6,10 @@ a {
   color: #00B7FF;
 }
 
+.wide_span{
+  width: 50px;
+}
+
 #portfolio_info{
   display: inline;
   color:gray;

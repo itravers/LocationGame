@@ -22,7 +22,9 @@
   var property_cost_text = convertToMoney(property_cost);
 
   var property_cost_per_share = property_cost / 100;
-  var shares = 50;
+  var shares_available = 100 - results.percent_owned;
+  var initial_selection = shares_available /2;
+  var shares = initial_selection;
   var current_property_cost = property_cost_per_share * shares;
   var affordable = false;
   if(property_cost_per_share <= cash_on_hand){
@@ -32,11 +34,9 @@
     current_property_cost = property_cost_per_share;
   }
 
-  var daily_income = current_property_cost * .15;
+  var daily_income = current_property_cost * .11;
   var daily_cost   = current_property_cost * .1;
   var daily_profit = daily_income - daily_cost;
-  var shares_available = 100 - results.percent_owned;
-  var initial_selection = shares_available /2;
 
   function convertToMoney(number){
     var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
@@ -98,7 +98,7 @@
 
   var property_cost_per_share = <%= property_cost_per_share %>;
   var current_property_cost = <%= current_property_cost %>;
-  var daily_income = current_property_cost * .15;
+  var daily_income = current_property_cost * .11;
   var daily_cost   = current_property_cost * .1;
   var daily_profit = daily_income - daily_cost;
   var cash_on_hand = <%= cash_on_hand %>;
@@ -115,7 +115,7 @@
   slider.oninput = function() {
     output.innerHTML = this.value + "%";
     current_property_cost = property_cost_per_share * this.value;
-    daily_income = current_property_cost * .15;
+    daily_income = current_property_cost * .11;
     daily_cost   = current_property_cost * .1;
     daily_profit = daily_income - daily_cost;
     $("#property_price_value").text(convertToMoney(current_property_cost));
@@ -144,7 +144,7 @@
     if(!buttonDisabled){
       if(cash_on_hand > current_property_cost){
           var propertyid = "<%= results._id %>";
-          var shares = slider.value;;
+          var shares = slider.value;
           $.ajax({
           type: "GET",
           url: "/buyproperty/"+propertyid+"/"+shares,
