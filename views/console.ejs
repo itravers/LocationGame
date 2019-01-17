@@ -13,16 +13,16 @@
   console.log("ticks: " + ticks);
   var company_value = user.company_value;
   console.log("companyvaluefront" + company_value);
-  company_value = 0;//convertToMoney(company_value); 
+  company_value = convertToMoney(company_value); 
  
   var portfolio_value = user.portfolio_value;
-  portfolio_value = 0;//convertToMoney(portfolio_value);
+  portfolio_value = convertToMoney(portfolio_value);
   
   var cash_on_hand = user.cash_on_hand;
-  cash_on_hand = 0;//convertToMoney(portfolio_value);
+  cash_on_hand = convertToMoney(cash_on_hand);
   
   var cash_tied_up = user.cash_tied_up;
-  cash_tied_up = 0;//convertToMoney(portfolio_value);
+  cash_tied_up = convertToMoney(cash_tied_up);
   
   var income_last_day = user.income.last_day;
   income_last_day = (income_last_day).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
@@ -61,7 +61,8 @@
 
   var level = user.level;
   var company_name = user.company_name;
-  
+  var groupies = user.groupies;  
+
   function convertToMoney(portfolio_value){
     var decimals = 3;
     if(number < 1000) decimals = 0;
