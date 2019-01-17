@@ -133,7 +133,7 @@ a {
 }
 
 #locationGameMenu{
-  font-size: 40px;
+  font-size: 60px;
   text-align: right;
   z-index: 2000;
 }
@@ -351,8 +351,12 @@ display: inline;
   display:none;
 }
 
+.dropdown-menu{
+  min-width: 33rem;
+}
+
 .dropdown-left{
-  left:-280px;
+  left:-440px;
 }
 
 .dropdown-item{

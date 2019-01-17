@@ -34,7 +34,7 @@
     current_property_cost = property_cost_per_share;
   }
 
-  var daily_income = current_property_cost * .11;
+  var daily_income = current_property_cost * .1001;
   var daily_cost   = current_property_cost * .1;
   var daily_profit = daily_income - daily_cost;
 
@@ -44,6 +44,8 @@
     money = "$"+money;
     return money;
   }
+
+  console.log("shares_available: " +shares_available);
 
 %>
 
@@ -60,7 +62,9 @@
     <div class="col-sm-6 center_black" id="daily_income_value"><%= convertToMoney(daily_income) %></div>
     <div class="col-sm-6 center_black" id="daily_cost_value"><%= convertToMoney(daily_cost) %></div>
   </div>
-  <% if(affordable){ %>
+  <%if(shares_available <= 0){ %> 
+    <div id="percent_to_purchase_text">This Property isn't Available</div>
+  <% }else if(affordable){ %>
     <div><button type="button" class="btn btn-primary btn-lg center-block" id="buy_button" onclick="clickBuy()">BUY</button></div>
     <div id="percent_to_purchase_text">Percent To Purchase:</div>
     <div id="percent_to_purchase_value"><%= initial_selection %></div>
@@ -98,7 +102,7 @@
 
   var property_cost_per_share = <%= property_cost_per_share %>;
   var current_property_cost = <%= current_property_cost %>;
-  var daily_income = current_property_cost * .11;
+  var daily_income = current_property_cost * .1001;
   var daily_cost   = current_property_cost * .1;
   var daily_profit = daily_income - daily_cost;
   var cash_on_hand = <%= cash_on_hand %>;
@@ -115,7 +119,7 @@
   slider.oninput = function() {
     output.innerHTML = this.value + "%";
     current_property_cost = property_cost_per_share * this.value;
-    daily_income = current_property_cost * .11;
+    daily_income = current_property_cost * .1001;
     daily_cost   = current_property_cost * .1;
     daily_profit = daily_income - daily_cost;
     $("#property_price_value").text(convertToMoney(current_property_cost));

@@ -13,24 +13,16 @@
   console.log("ticks: " + ticks);
   var company_value = user.company_value;
   console.log("companyvaluefront" + company_value);
-    company_value = (company_value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-    company_value = (company_value).substring(0, company_value.length - 3);
-  company_value = "$"+company_value;
-  
+  company_value = 0;//convertToMoney(company_value); 
+ 
   var portfolio_value = user.portfolio_value;
-  portfolio_value = (portfolio_value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-  portfolio_value = (portfolio_value).substring(0, portfolio_value.length - 3);
-  portfolio_value = "$"+portfolio_value;
+  portfolio_value = 0;//convertToMoney(portfolio_value);
   
   var cash_on_hand = user.cash_on_hand;
-  cash_on_hand = (cash_on_hand).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-  cash_on_hand = (cash_on_hand).substring(0, cash_on_hand.length - 3);
-  cash_on_hand = "$"+cash_on_hand;
+  cash_on_hand = 0;//convertToMoney(portfolio_value);
   
   var cash_tied_up = user.cash_tied_up;
-  cash_tied_up = (cash_tied_up).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-  cash_tied_up = (cash_tied_up).substring(0, cash_tied_up.length - 3);
-  cash_tied_up = "$"+cash_tied_up;
+  cash_tied_up = 0;//convertToMoney(portfolio_value);
   
   var income_last_day = user.income.last_day;
   income_last_day = (income_last_day).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
@@ -69,7 +61,15 @@
 
   var level = user.level;
   var company_name = user.company_name;
-  var groupies = user.groupies;
+  
+  function convertToMoney(portfolio_value){
+    var decimals = 3;
+    if(number < 1000) decimals = 0;
+    var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    money = (money).substring(0, money.length - decimals);
+    money = "$"+money;
+    return money;
+  }
 %>
 
 <div class="container col-sm-12">

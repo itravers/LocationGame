@@ -59,10 +59,15 @@
       <ul class="dropdown-menu dropdown-left" id="locationGameMenu"  aria-labelledby="dropdownMenuButton">
         <div class="dropdown-divider"></div>
         <a class="dropdown-item" href="/console">Console</a><span class="fa fa-dashboard"></span>
+        <hr />
         <a class="dropdown-item" href="/buyproperties">Buy Properties</a><span class="fa fa-building"></span>
+        <hr />
         <a class="dropdown-item" href="/portfolio">Portfolio</a><span class="fa fa-briefcase"></span>
+        <hr />
         <a class="dropdown-item" href="/scoreboard">Scoreboard</a><span class="fa fa-group"></span>
+        <hr />
         <a class="dropdown-item" href="/profile">Your Profile</a><span class="fa fa-gear"></span>
+        <hr />
         <% if(locals.user.permissions.admin){ %>
         <a class="dropdown-item" href="/admin">Admin</a><span class="fa fa-wrench"></span>
         <% } %>

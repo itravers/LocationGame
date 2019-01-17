@@ -19,7 +19,7 @@ var ticks = 0;
 var j = schedule.scheduleJob('* * * * *', function(){
   var delayTime = 15000;
   timeStep();
-  delay(function(){
+/*  delay(function(){
     timeStep();
     delay(function(){
       timeStep();
@@ -29,6 +29,7 @@ var j = schedule.scheduleJob('* * * * *', function(){
     }, delayTime ); // end delay
   
   }, delayTime ); // end delay
+*/
 });
 
 var delay = ( function() {
@@ -1171,7 +1172,7 @@ function timeStep(){
                 //console.log("user: " + allusers[i].company_name + " owns " + value_city_owned + " of " + allcities[k].city_name);
 
                 //now we update cash earned and user.income.last_day, and property.owned cash earnedi
-                var daily_income = value_city_owned * .11;
+                var daily_income = value_city_owned * .1001;
                 var daily_cost   = value_city_owned * .1;
                 var daily_profit = daily_income - daily_cost;
                 var cash_earned = daily_profit;
