@@ -7,10 +7,10 @@ var hostedAddress = "http://192.168.1.197";
 
 // load up the quizQestions model
 var Distance = require('geo-distance');
-var Locations            = require('../models/locations');
+//var Locations            = require('../models/locations');
 var Users = require('../models/user');
 var Cities            = require('../models/cities');
-var Venues            = require('../models/venues');
+//var Venues            = require('../models/venues');
 var util = require('util');
 var ObjectId = (require('mongoose').Types.ObjectId);
 var schedule = require('node-schedule');
