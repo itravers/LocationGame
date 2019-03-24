@@ -28,15 +28,21 @@
       <th>Place</th>
       <th>Username</th>
       <th>Picture</th>
-      <th>Answered</th>
-      <th>Correct</th>
-      <th>Score</th>
+      <th>Portfolio Value</th>
     </tr>
   </thead>
   <tbody>
 
     <% for(var i =0; i < results.length; i++){ %>
     <%
+
+      var portfolio_value = results[i].portfolio_value;
+      var decimals = 3;
+      if(portfolio_value < 1000) decimals = 0;
+      portfolio_value = (portfolio_value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+      portfolio_value = (portfolio_value).substring(0, portfolio_value.length - decimals);
+      portfolio_value = "$"+portfolio_value;
+
       var username = "";
       var photo = "/images/signedout.png";
       var isme = false;
@@ -44,38 +50,28 @@
         username = results[i].facebook.name;
         photo = results[i].facebook.photo;
         if(locals.user && locals.user.facebook.name == username 
-           && locals.user.gameinfo.score == results[i].gameinfo.score)
+           && locals.user.portfolio_value == results[i].portfolio_value)
           isme = true;
       }else if(results[i].twitter.username != null){
         username = results[i].twitter.username;
         photo = results[i].twitter.photo;
         if(locals.user && locals.user.twitter.username == username 
-           && locals.user.gameinfo.score == results[i].gameinfo.score)
+           && locals.user.portfolio_value == results[i].portfolio_value)
           isme = true;
       }else if(results[i].google.name != null){
         username = results[i].google.name;
         photo = results[i].google.photo;
         if(locals.user && locals.user.google.name == username 
-           && locals.user.gameinfo.score == results[i].gameinfo.score)
+           && locals.user.portfolio_value == results[i].portfolio_value)
           isme = true;
       }else if(results[i].local.email != null){
         username = results[i].local.email;
         photo = "/images/signedout.png";
         if(locals.user && locals.user.local.email == username 
-           && locals.user.gameinfo.score == results[i].gameinfo.score)
+           && locals.user.portfolio_value == results[i].portfolio_value)
           isme = true;
       }
 
-      //calculate pct correct
-      var tright = 0;
-      var twrong = 0;
-      for(var j = 0; j <results[i].questionHistory.length; j++){
-        tright = tright + results[i].questionHistory[j].rightattempts;
-        twrong = twrong + results[i].questionHistory[j].wrongattempts;
-      }
-      var qpct = tright / (tright+twrong) * 100;
-      qpct = Math.round(qpct * 100) / 100; //round to 2 decimals
-      if(results[i].questionHistory.length == 0) qpct = 0; 
       
       var ismeclass = "";
       if(isme)
@@ -86,9 +82,7 @@
         <th scope="row"><%=i+1%></th>
         <td><%= username %></td> 
         <td><img src="<%= photo %>" height="30px" width="30px"></img></td> 
-        <td><%= results[i].questionHistory.length %></td> 
-        <td><%= qpct %>%</td> 
-        <td><%= results[i].gameinfo.score %></td> 
+        <td><%= portfolio_value %></td> 
       </tr>
     <% } %>
   

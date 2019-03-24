@@ -3,11 +3,10 @@
 var mongoose = require('mongoose');
 var bcrypt   = require('bcrypt-nodejs');
 
-var historySchema = mongoose.Schema({
-  type          : String,
-  qid           : mongoose.Schema.Types.ObjectId,
-  wrongattempts : Number,
-  rightattempts : Number
+var properties_ownedSchema = mongoose.Schema({
+  property_id          : String,
+  percent_owned        : Number,
+  total_earned         : Number
 });
 
 // define the schema for our user model
@@ -38,17 +37,29 @@ var userSchema = mongoose.Schema({
         name         : String,
         photo        : String
     },
-    gameinfo        : {
-      score         : {type: Number, default: 0}
+    income           : {
+        last_day     : {type: Number, default: 0},
+        last_week    : {type: Number, default: 0},
+        last_month   : {type: Number, default: 0},
+        last_year    : {type: Number, default: 0}
     },
-    permissions     : {
-      admin         : {type: Boolean, default: false},
-      editQuestions : {type: Boolean, default: false},
-      viewReports   : {type: Boolean, default: false},
-      editUsers     : {type: Boolean, default: false}
+    property           : {
+        total_properties      : {type: Number, default: 0},
+        max_properties        : {type: Number, default: 5},
+        total_pending         : {type: Number, default: 0},
+        max_pending           : {type: Number, default: 2},
+        owned                 : [properties_ownedSchema]
     },
-    questionHistory : [historySchema],
-    difficulty      : {type: Number, default: 2}
+    permissions      : {
+      admin : {type: Boolean, default: false}
+    },
+    portfolio_value  : {type: Number, default: 0},
+    cash_on_hand     : {type: Number, default: 100},
+    cash_tied_up     : {type: Number, default: 0},
+    level            : {type: Number, default: 0},
+    groupies         : {type: Number, default: 0},
+    company_name     : {type: String, default: "Default Name"}
+
 
 });
 

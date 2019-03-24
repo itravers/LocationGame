@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include partials/head %>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+   integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+   crossorigin=""/>
+   <!-- Make sure you put this AFTER Leaflet's CSS -->
+
+</head>
+<body>
+<header>
+  <% include partials/header %>
+</header>
+
+<%
+  //info here
+  var cash_on_hand = user.cash_on_hand;
+  var cash_on_hand_text = convertToMoney(cash_on_hand);
+
+  var property_cost = results.property_cost;
+  var property_cost_text = convertToMoney(property_cost);
+
+  var property_cost_per_share = property_cost / 100;
+  var shares_available = 100 - results.percent_owned;
+  var initial_selection = shares_available /2;
+  var shares = initial_selection;
+  var current_property_cost = property_cost_per_share * shares;
+  var affordable = false;
+  if(property_cost_per_share <= cash_on_hand){
+    affordable = true;
+  }else{
+    affordable = false;
+    current_property_cost = property_cost_per_share;
+  }
+
+  var daily_income = (current_property_cost * .1001) * 60;
+  var daily_cost   = (current_property_cost * .1) * 60;
+  var daily_profit = (daily_income - daily_cost)*1;
+
+  function convertToMoney(number){
+    var decimal = 3;
+    if(number < 1000) decimal = 0;
+    var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    money = (money).substring(0, money.length - decimal);
+    money = "$"+money;
+    return money;
+  }
+
+  console.log("shares_available: " +shares_available);
+
+%>
+
+<div class="container col-sm-12">
+  <div id="buy_property_map"></div>
+  <div id="cash_on_hand_text">Cash Available: <b><div id="cash_on_hand_amount"><%= cash_on_hand_text %></div></b></div>
+  <hr/>
+  <div id="property_price_text">Price<b><div id="property_price_value"><%= convertToMoney(current_property_cost) %></div></b></div>
+  <div class="row">
+    <div class="col-sm-6 center_gray">Hourly Income</div>
+    <div class="col-sm-6 center_gray">Hourly Cost</div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6 center_black" id="daily_income_value"><%= convertToMoney(daily_income) %></div>
+    <div class="col-sm-6 center_black" id="daily_cost_value"><%= convertToMoney(daily_cost) %></div>
+  </div>
+  <%if(shares_available <= 0){ %> 
+    <div id="percent_to_purchase_text">This Property isn't Available</div>
+  <% }else if(affordable){ %>
+    <div><button type="button" class="btn btn-primary btn-lg center-block" id="buy_button" onclick="clickBuy()">BUY</button></div>
+    <div id="percent_to_purchase_text">Percent To Purchase:</div>
+    <div id="percent_to_purchase_value"><%= initial_selection %></div>
+    <div class="slidecontainer">
+      <input type="range" min="1" max="<%= shares_available%>" value="<%= initial_selection %>" class="slider" id="myRange">
+    </div>
+  <% }else{ %>
+    <div id="percent_to_purchase_text">You Cannot Afford This</div>
+  <% } %>
+</div>
+
+  <div class="container col-sm-12" id="buy_property_footer">  
+  <div id="daily_profit_text">Hourly Profit: <div id="daily_profit_value"><%= convertToMoney(daily_profit) %></div></div>
+  </div>
+  <footer class="fixed-bottom">
+    <% include partials/footer %>
+  </footer>
+ <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
+   integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
+   crossorigin=""></script>
+  <script type="text/javascript">
+    var map = L.map('buy_property_map').setView([<%= results.lat %>, <%= results.longi %>], 12);
+//L.tileLayer('http://b.tilecloudmade.com/e7b61e61295a44a5b319ca0bd3150890/997/256/18/149531/108306.png', {
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+    maxZoom: 18,
+    id: 'mapbox.streets',
+    accessToken: 'pk.eyJ1IjoiaXRyYXZlcnMiLCJhIjoiY2pxdTV0NGJmMGg1ajQzbWgwNmwyZnIwYSJ9.B_Cezeisp5K-YhjkQEYXQw'
+  }).addTo(map);
+
+  var slider = document.getElementById("myRange");
+  var output = document.getElementById("percent_to_purchase_value");
+  output.innerHTML = slider.value + "%"; // Display the default slider value
+
+
+  var property_cost_per_share = <%= property_cost_per_share %>;
+  var current_property_cost = <%= current_property_cost %>;
+  var daily_income = (current_property_cost * .1001) * 60;
+  var daily_cost   = (current_property_cost * .1) * 60;
+  var daily_profit = (daily_income - daily_cost) * 1;
+  var cash_on_hand = <%= cash_on_hand %>;
+  var buttonDisabled = false;
+  var shares;
+    if(cash_on_hand < current_property_cost){
+      $("#buy_button").addClass('disabled');    
+      buttonDisabled = true;
+    }else{
+      $("#buy_button").removeClass('disabled');     
+      buttonDisabled = false;
+    }
+  // Update the current slider value (each time you drag the slider handle)
+  slider.oninput = function() {
+    output.innerHTML = this.value + "%";
+    current_property_cost = property_cost_per_share * this.value;
+    daily_income = (current_property_cost * .1001) * 60;
+    daily_cost   = (current_property_cost * .1) * 60;
+    daily_profit = (daily_income - daily_cost) * 1;
+    $("#property_price_value").text(convertToMoney(current_property_cost));
+    $("#daily_income_value").text(convertToMoney(daily_income));
+    $("#daily_cost_value").text(convertToMoney(daily_cost));
+    $("#daily_profit_value").text(convertToMoney(daily_profit));
+
+    //grey out buy button if cannot afford
+    if(cash_on_hand < current_property_cost){
+      $("#buy_button").addClass('disabled');    
+      buttonDisabled = true;
+    }else{
+      $("#buy_button").removeClass('disabled');     
+      buttonDisabled = false;
+    }
+  }
+
+  function convertToMoney(number){
+    var decimal = 3;
+    if(number < 1000) decimal = 0;
+    var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    money = (money).substring(0, money.length - decimal);
+    money = "$"+money;
+    return money;
+  }
+
+  function clickBuy(){
+    if(!buttonDisabled){
+      if(cash_on_hand > current_property_cost){
+          var propertyid = "<%= results._id %>";
+          var shares = slider.value;
+          $.ajax({
+          type: "GET",
+          url: "/buyproperty/"+propertyid+"/"+shares,
+          success: function(data){
+            if(data.status == "error"){
+              alert("Error: " + data.message);
+            }else if(data.status == "success"){
+              //alert("Success: " + data.message);
+              window.location.replace("/portfolio");
+            }
+          },
+          error: function(err){
+            console.log("error submitting problem: " + err);
+            alert(`err: ${JSON.stringify(err, undefined, 2)}`);
+          }
+        });
+      }else{
+        alert("elseerror");
+      }
+    }
+  } 
+  </script>
+
+</body>
+</html>

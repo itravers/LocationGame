@@ -2,265 +2,446 @@
 
 //used by socket.io to allow client to connect to server, this must change
 //if domain changes, or when we move from dev server to live
-//var hostedAddress = "http://192.168.1.197";
-var hostedAddress = "http://quiz.chicosystems.com";
+var hostedAddress = "http://192.168.1.197";
+//var hostedAddress = "http://quiz.chicosystems.com";
 
 // load up the quizQestions model
-var QuizQuestion            = require('../models/quizQuestions');
-var Users                   = require('../models/user');
-var JQuestion               = require('../models/jQuestions');
-var ReportProblem           = require('../models/reportProblem');
-//var QuestionHistory         = require('../models/questionHistory');
-var ObjectId                = require('mongoose').Types.ObjectId;
+var Distance = require('geo-distance');
+//var Locations            = require('../models/locations');
+var Users = require('../models/user');
+var Cities            = require('../models/cities');
+//var Venues            = require('../models/venues');
 var util = require('util');
+var ObjectId = (require('mongoose').Types.ObjectId);
+var schedule = require('node-schedule');
+var ticks = 0;
 
-//convert stanford questions
-var s_old_questions = require('../models/stanford_old');
-var StanfordQuestion        = require('../models/stanfordQuestions');
+var j = schedule.scheduleJob('* * * * *', function(){
+  var delayTime = 15000;
+  timeStep(1);
+/*  delay(function(){
+    timeStep();
+    delay(function(){
+      timeStep();
+      delay(function(){
+        timeStep();
+      }, delayTime ); // end delay
+    }, delayTime ); // end delay
+  
+  }, delayTime ); // end delay
+*/
+});
 
-//random weighted choice, used for difficulty settings
-var rwc                     = require('random-weighted-choice');
-var rwc0 = [
-  {weight: 94, id: 0},
-  {weight: 5, id: 1},
-  {weight: 1, id: 2}
-];
-
-var rwc1 = [
-  {weight: 79, id: 0},
-  {weight: 20, id: 1},
-  {weight: 1, id: 2}
-];
-
-var rwc2 = [
-  {weight: 48, id: 0},
-  {weight: 48, id: 1},
-  {weight: 2, id: 2}
-];
-
-var rwc3 = [
-  {weight: 20, id: 0},
-  {weight: 60, id: 1},
-  {weight: 20, id: 2}
-];
-
-var rwc4 = [
-  {weight: 5, id: 0},
-  {weight: 90, id: 1},
-  {weight: 5, id: 2}
-];
-
-var rwcTable = [];
-rwcTable.push(rwc0);
-rwcTable.push(rwc1);
-rwcTable.push(rwc2);
-rwcTable.push(rwc3);
-rwcTable.push(rwc4);
+var delay = ( function() {
+    var timer = 0;
+    return function(callback, ms) {
+        clearTimeout (timer);
+        timer = setTimeout(callback, ms);
+    };
+})();
 
 module.exports = function(app, passport){
-  //=============================================
-  //Stanford Question Conversions
-  //============================================
-/*  app.get('/convertStanford', function(req, res){
-    s_old_questions.find({}, function(err, result){
-      if(err){
-        res.send({status: "error", message: err});
-      }else if(result == ""){
-        res.send({status: "error", message: "Question :"+req.params.id+" does not exist!"});
-      }else{
-        //console.log("question: " + result);
-        console.log("length: " +result.length);
-        console.log(result[1].title);
-        res.send(result[1]);
-        for(var i = 0; i < result.length; i++){
-          var category = result[i].title;
-          category = category.replace(/_/g, " "); //replace _ with space
-          console.log("category: " + category);
-          for(var j = 0; j < result[i].paragraphs.length; j++){
-             // console.log(result[i].paragraphs[j].qas.length);
-            for(var k = 0; k < result[i].paragraphs[j].qas.length; k++){
-              if(category == null || 
-                 result[i].paragraphs[j].qas[k].question == null || 
-                 result[i].paragraphs[j].qas[k].answers[0] == null){
-                 console.log("something is null");
-                //do nothing for this question, something is null
-              }else{
-                var question = result[i].paragraphs[j].qas[k].question;
-                var answer =   result[i].paragraphs[j].qas[k].answers[0].text;
-                //record this question into new db
-                console.log("Category: " + category + " - Answer: " + answer + " - Question: " + question);            
-                var stanfordQuestion = new StanfordQuestion();
-                stanfordQuestion.category = category;
-                stanfordQuestion.question = question;
-                stanfordQuestion.answer = answer;
-                stanfordQuestion.save();
-              }
-            }
-          }
-        }
-      }
-    });
- 
-  });
-*/
 
   //==============================================
   //Game Routes
   //==============================================
 
-  app.get('/sockettest', function(req, res){
-    res.render('socketTest.ejs', {title: "Quiz Game Socket Test"});
-  });
 
   app.get('/designtest', function(req, res){
     functionTest();
-    res.render('designTest.ejs', {title : "Quiz Game"});
+    res.render('designTest.ejs', {title : "Design Test"});
   });
 
   app.get('/privacy', function(req, res){
     res.render('privacy.ejs', {
-      title : "Quiz Game - Privacy",
+      title : "Location Game - Privacy",
       user : req.user  
     });
   });
 
   app.get('/designtest2', function(req, res){
-    res.render('designTest2.ejs', {title : "Quiz Game"});
+    res.render('designTest2.ejs', {title : "Design Test 2"});
   });
 
   app.get('/jquestion', function (req, res){
     renderJQuestion(req, res);
   });
 
-  //The main page, renders jquestion or quizquestion half time
   app.get('/', function(req, res){
-    //set difficulty
-    var difficulty = 2;
-    if(req.user){
-      difficulty = req.user.difficulty;
-    }
-    var random = rwc(rwcTable[difficulty]);
+    res.redirect('/console');
+  });
 
-    if(random == 0){
-      renderJQuestion(req, res);
-    }else if(random == 1){
-      renderQuizQuestion(req, res);
+  //this is the main user console
+  app.get('/console', function(req, res){
+    if(req.user){
+      req.user.company_value = req.user.portfolio_value + req.user.cash_on_hand + req.user.cash_tied_up;
+      req.user.level = calculateLevel(req.user.portfolio_value);
+      req.user.portfolio_next_value = calculateNextPortfolioValue(req.user.level);
+      req.user.cash_on_hand_limit = calculateCashOnHandLimit(req.user.level);
+      req.user.save();
+      res.render('console.ejs', {
+        title : "Console",
+        user : req.user,
+        ticks: ticks
+      });
     }else{
-      renderStanfordQuestion(req, res);
+      res.redirect('/login');
     }
   });
 
-  //user clicked on a wrong answer
-  app.get('/wronganswer/:questionType/:questionId', function(req, res, done){
-    console.log("wronganswer");
-    //if there is a user signed in update his history and score
+  //The buy properties page, user can see all local properties
+  app.get('/buyproperties', function(req, res){
+    var lat = 41.08749;
+    var longi = -122.717445;
+    //var lat = 34.002503;
+    //var longi = -118.239809;
+    var miles = 400;
     if(req.user){
-      var user = req.user;
+      //first lets find a list of cities
+      Cities.find({location: { $geoWithin: { $centerSphere: [[longi, lat], miles / 3963.2]}}},{},).exec(function(err, results){
+        if(err) throw err;
+       
+      
+        //now we want to sort results based on location
+        var myLoc = {lat: lat, lon: longi};
+        console.log("sorting cities...");
+        results = mergeSort(results, myLoc);
+        console.log("done sorting cities");
+        //limit the length of the results, this will be a skill
+        results.length = 300;
+        for(var i = 0; i < results.length; i++){ 
+          results[i].property_cost = calculateCityValue(results[i]);
+        }  
+        res.render('buyproperties.ejs', {
+          title : "Buy Properties",
+          user  : req.user,
+          results : results
+        });
 
-      //find question in users question history
-      var questionFound = false;
-      var qIndex = null;
-      var qidToFind = req.params.questionId;//new ObjectId(req.params.questionId);
-      for(var i = 0; i < user.questionHistory.length; i++){
-        //console.log(user.questionHistory[i]);
-        if(user.questionHistory[i].qid == qidToFind &&
-           user.questionHistory[i].type == req.params.questionType){
-          questionFound = true;
-          qIndex = i;
-        }
-      }
+      });
+      
+    }else{
+      res.redirect('/login');
+    }
+  });
 
-      //if question was found in question history, update it, otherwise create a new one
-      if(questionFound){
-        //the question was found at index qIndex, modify correct field
-        user.questionHistory[qIndex].wrongattempts++;
-      }else{
-        //the question was not found, create a new one, and add it to user
-        var newHistory = {
-          type : req.params.questionType,
-          qid : req.params.questionId,
-          wrongattempts: 1,
-          rightattempts: 0
-        };
-        user.questionHistory.push(newHistory);// = questionHistory;
-      }
-
-      //update score, and save user back to db
-      req.session.score = req.session.score - 1;
-      user.gameinfo.score = req.session.score;
-      user.save();
-
-      //let front end know
-      res.send({
-        message: "ok",
-        score  : req.session.score
+  //view a property page, with option to buy it
+  app.get('/viewproperty/:propertyid', function(req, res){
+    var propertyid = req.params.propertyid;
+    if(req.user){
+      Cities.findOne({_id: new ObjectId(propertyid)}, {}, function(err, results){
+        if(err) throw err;
+        results.property_cost = calculateCityValue(results);
+        res.render('viewproperty.ejs', {
+          title : "View " + results.city_name,
+          user  : req.user,
+          results : results
+        });
       });
     }else{
-      //user is not signed in, send error to client
-      res.send({
-        message: "error"
+      res.redirect('/login');
+    }
+  });
+
+  //view a property page to sell it
+  app.get('/viewsellproperty/:propertyid', function(req, res){
+    var propertyid = req.params.propertyid;
+    if(req.user){
+      Cities.findOne({_id: new ObjectId(propertyid)}, {}, function(err, results){
+        if(err) throw err;
+        results.property_cost = calculateCityValue(results);
+        res.render('sellproperty.ejs', {
+          title : "View " + results.city_name,
+          user  : req.user,
+          results : results
+        });
+      });
+    }else{
+      res.redirect('/login');
+    }
+  });
+
+  /*user decided to sell shares of a property
+  */
+  app.get('/sellproperty/:propertyid/:shares', function(req, res){
+    //get parameters
+    var propertyid = req.params.propertyid;
+    var sharesToSell = parseFloat(req.params.shares);
+    var sharesOwned = 0;
+    //find shares of this property the user already owns
+    if(req.user){
+      for(var i = 0; i < req.user.property.owned.length; i++){
+        if(propertyid == req.user.property.owned[i].property_id){
+          sharesOwned = req.user.property.owned[i].percent_owned;
+        }
+      }
+    }
+   
+    console.log("sharesOwned:  " + sharesOwned);
+    console.log("sharesToSell: " + sharesToSell);
+ 
+    if(!req.user){ //make sure user is signed in
+      //user is not signed in, send error
+      res.send({status: "error", message: "User Not Signed In!"});
+    }else if(sharesOwned < sharesToSell){ //check user has shares to sell
+      res.send({status: "error", message: "sharesOwned: " + sharesOwned + " sharesToSell: "+sharesToSell });
+    }else{
+      Cities.findOne({_id: new ObjectId(propertyid)}, {}, function(err, results){
+        //process request
+        if(err){
+          res.send({status: "error", message: "City Not Available"});
+          return;
+        }
+        
+        console.log(" premodify req.user.property.owned " + req.user.property.owned);      
+
+        //1. modify user
+        //loop through user.property.owned and remove any matches
+        for(var i = 0; i < req.user.property.owned.length; i++){
+          if(req.user.property.owned[i].property_id == propertyid){
+            if(sharesToSell == sharesOwned){
+              //we found a match, remove it from the array
+              req.user.property.owned.splice(i, 1);
+              //decrease properties owned
+              req.user.property.total_properties -= 1;
+              break;
+            }else{
+              //we found a match, change percent owned
+              req.user.property.owned[i].percent_owned -= sharesToSell;
+              break;
+            }
+          }
+        } 
+      
+
+        var city_value = calculateCityValue(results);
+        var cost_per_share = city_value / 100;
+        var cost = cost_per_share * sharesToSell;
+       
+         //change portfolio_value
+        req.user.portfolio_value = req.user.portfolio_value - cost;
+
+        //change cash value
+        req.user.cash_on_hand = req.user.cash_on_hand + cost;
+
+        req.user.save(function(err){
+          if(err){
+            res.send({status: "error", message: "City Not Available"});
+            return;
+          }
+          //2. modify property
+          //loop through result.owners and remove match
+          for(var i = 0; i < results.owners.length; i++){
+            if(req.user._id == results.owners[i].owner_id){
+              if(sharesToSell == sharesOwned){
+                //we have a match, remove it
+                results.owners.splice(i, 1);
+                break;
+              }else{
+                results.owners[i].percent_owned -= sharesToSell;
+                break;
+              }
+            } 
+          }
+          results.percent_owned = results.percent_owned - sharesToSell;
+          results.save(function(err){
+            if(err){
+              res.send({status: "error", message: "City Not Available"});
+              return;
+            }
+            res.send({status: "success", message: "Success!"});
+          });
+        });
       });
     }
   });
 
-  //user clicked on a right answer
-  app.get('/rightanswer/:questionType/:questionId', function(req, res, done){
-    //if user is logged in, update score and record question, otherwise send error message
+  //user decided to buy a property, clicks buy button (backend)
+  app.get('/buyproperty/:propertyid/:shares', function(req, res){
+    var propertyid = req.params.propertyid;
+    var shares = parseFloat(req.params.shares);
     if(req.user){
-      console.log("rightanswer");
-      var user = req.user;
-      
-      //find question in users question history
-      var questionFound = false;
-      var qIndex = null;
-      var qidToFind = req.params.questionId;
+      Cities.findOne({_id: new ObjectId(propertyid)}, {}, function(err, results){
+        if(err){
+           res.send({status: "error", message: "City Not Available"});
+        }else{
+          //no error, city is found
+          //check if user can afford this many shares of property
+          var city_value = calculateCityValue(results);
+          var price_per_share = city_value / 100;
+          var purchase_price = price_per_share * shares;
+          var cash_on_hand = req.user.cash_on_hand;
+          if(results.percent_owned + shares > 100){
+              res.send({status: "error", message: "That many shares not available"});
+              console.log("error That many shares not available");
+          }else if(purchase_price <= cash_on_hand){
+            //first we create a new owner record in the property that is bought
+            var newOwner = {
+              owner_id  : req.user._id,
+              percent_owned : shares
+            };
 
-      //loop through question history
-      for(var i = 0; i < user.questionHistory.length; i++){
-        if(user.questionHistory[i].qid == qidToFind &&
-           user.questionHistory[i].type == req.params.questionType){
-          questionFound = true;
-          qIndex = i;
+            //we go through all owers of the property, already own it we
+            //add the amount we've just purchased.
+            var already_own = false;
+            for(var i = 0; i < results.owners.length; i++){
+              //see if user id is == to owner.id
+              if(results.owners[i].owner_id == req.user._id){
+                //we already own a share, let just add to it
+                results.owners[i].percent_owned += shares;
+                already_own = true;
+                break;
+              }
+            }
+            //if we don't already own it, we save the newOwner record
+            if(!already_own){
+              results.owners.push(newOwner);
+            }
+          
+            //now we calculate the percent_owned for the city
+            var percent_owned = 0;
+            for(var i = 0; i < results.owners.length; i++){
+              percent_owned += results.owners[i].percent_owned;
+            }
+            results.percent_owned = percent_owned;
+                      
+            results.save(function(err){
+              //res.redirect('/profile');
+              //now we add the property record to the user
+              already_own = false;
+              for(var i = 0; i < req.user.property.owned.length; i++){
+                //check to make sure we don't already own this
+                if(req.user.property.owned[i].property_id == results._id){
+                  req.user.property.owned[i].percent_owned += shares;
+                  already_own = true;
+                } 
+              }
+  
+              //the user does not already own the property. create and save new re
+              if(!already_own){
+                //now we create a new property.owned record for the user
+                var newPropertyOwned = {
+                  property_id  : results._id,
+                  percent_owned : shares,
+                  total_earned  : 0
+                };  
+
+                req.user.property.owned.push(newPropertyOwned);
+                req.user.property.total_properties = req.user.property.total_properties + 1;
+                
+              }
+              //increase user.portfolio_value by amound purchased
+              req.user.portfolio_value += purchase_price;
+              req.user.cash_on_hand -= purchase_price;
+              req.user.save(function(err){
+                res.send({status: "success", message: "You've Purchased It", results: results, results2: req.user});
+              });
+            });
+  
+          }else{
+            res.send({status: "error", message: "You Cannot Afford That!"});
+          }
         }
-      }
-
-      //if question was found, update, otherwise create new one
-      if(questionFound){
-        user.questionHistory[qIndex].rightattempts++;
-      }else{
-        var newHistory = {
-          type : req.params.questionType,
-          qid  : req.params.questionId,
-          wrongattempts: 0,
-          rightattempts: 1
-        };
-        user.questionHistory.push(newHistory);
-      }
-
-      //we decrease the score in the session and
-      //update that score to the db
-      req.session.score = req.session.score + 5;
-      user.gameinfo.score = req.session.score;
-      user.save();
-      
-      //let front end know
-      res.send({
-        message: "ok",
-        score  : req.session.score
-      });//end res.send
-    }else{
-      res.send({
-        message: "error"
       });
+    }else{
+      res.send({status: "error", message: "Not Signed In"});
     }
-  });//end app.get
+  }); 
+
+  app.get('/portfolio', function(req, res){
+    var lat = 41.08749;
+    var longi = -122.717445;
+    if(req.user){
+      var ids = [];
+      //get id's of properties owned
+      for(var i = 0; i < req.user.property.owned.length; i++){
+        ids.push(req.user.property.owned[i].property_id);
+      }
+      var obj_ids = ids.map(function(id) { return ObjectId(id); });
+      Cities.find({_id: {$in: obj_ids}},{},).exec(function(err, results){
+        var myLoc = {lat: lat, lon: longi};
+        console.log("sorting cities...");
+        results = mergeSort(results, myLoc);
+        console.log("done sorting cities");
+
+        //double loop, matching user.property.owned[j] to results[i]
+        var amountIOwn = [];
+        var totalEarned = [];
+        var propertyCost = [];// = calculateCityValue(results);
+        for(var i = 0; i < results.length; i++){
+          for(var j = 0; j < req.user.property.owned.length; j++){
+            //find a matching propertyid
+            if(results[i]._id == req.user.property.owned[j].property_id){
+              console.log("totalEarned: " + req.user.property.owned[j].total_earned); 
+              amountIOwn.push(req.user.property.owned[j].percent_owned);
+              totalEarned.push(req.user.property.owned[j].total_earned);
+              propertyCost.push(calculateCityValue(results[i]));
+              break;
+            }
+          } 
+        }
+        console.log("amountIOwn: " + amountIOwn);
+        res.render('portfolio.ejs',{
+          title: "Portfolio",
+          results: results,
+          user: req.user,
+          amountIOwn: amountIOwn,
+          totalEarned: totalEarned,
+          propertyCost: propertyCost
+        });
+      });
+    }else{
+      res.redirect('/login');
+    }
+  });
+
+  app.get('/simulateTimeStep/:numsteps', function(req, res){
+    var numsteps = parseInt(req.params.numsteps);
+    timeStep(numsteps);
+    res.send(numsteps + " tick[s] done");
+  });
+
+/*
+  //The main page, renders jquestion or quizquestion half time
+  app.get('/:latitude/:longitude/:miles', function(req, res){
+     var lat = parseFloat(req.params.latitude);
+     var longi = parseFloat(req.params.longitude);
+     var miles = parseInt(req.params.miles);
+     Cities.find({location: { $geoWithin: { $centerSphere: [[longi, lat], miles / 3963.2]      }    }  }, {}, ).exec(function(err, results){
+      if(err) throw err;
+
+      //here we want to sort results based on closest distance from latitude and longitude
+      var myLoc = {
+        lat: lat,
+        lon: longi
+      };
+
+      console.log("sorting...");
+      //results = selectionSort(results, myLoc);
+      results = mergeSort(results, myLoc);
+      console.log("done sorting");
+
+      res.render('index.ejs',{
+        title: "Quiz Game Scoreboard",
+        results: results,
+        user: req.user
+      });
+    });
+  });
+
+*/
+  app.get('/mapTest', function(req, res){
+    res.render('mapTest.ejs',{
+      title: "Map Test",
+    });
+  });
 
   app.get('/scoreboard', function(req, res, done){
-    Users.find({}, {}, ).sort('-gameinfo.score').exec(function(err, results){
+    Users.find({}, {}, ).exec(function(err, results){
       if(err) throw err;
 
       res.render('scoreboard.ejs',{
-        title: "Quiz Game Scoreboard",
+        title: "Scoreboard",
         results: results,
         user: req.user
       });
@@ -374,7 +555,7 @@ module.exports = function(app, passport){
 
           console.log("users: " + users);
           res.render('admin.ejs', {
-            title: "Quiz Game Admin",
+            title: "Admin",
             user: req.user,
             users: users,
             reports: results
@@ -404,125 +585,8 @@ module.exports = function(app, passport){
     }
   });
 
-  //gets a quiz question of given id, sends it to frontend
-  app.get('/quizquestiondisplay/:id', function(req, res){
-    if(req.params.id == "" || !ObjectId.isValid(req.params.id)){
-         res.send({status: "error", message: "Question: "+req.params.id+" does not exist!"});
-      return 0;
-    }
-    var query = { _id: new ObjectId(req.params.id) };
-    QuizQuestion.find(query, function(err, result){
-      if(err){
-        res.send({status: "error", message: err});
-      }else if(result == ""){
-        res.send({status: "error", message: "Question :"+req.params.id+" does not exist!"});
-      }else{
-        //console.log("question: " + result);
-        res.send({status: "success", message: "Success getting question: " + req.params.id, question: result});
-      }
-    });
     
-  });
 
-
-  //gets a jquestion of a given id, sends it to frontend
-  app.get('/jquestiondisplay/:id', function(req, res){
-    console.log("id: " + req.params.id);
-    if(req.params.id == "" || !ObjectId.isValid(req.params.id)){
-         res.send({status: "error", message: "Question: "+req.params.id+" does not exist!"});
-      return 0;
-    }
-    var query = { _id: new ObjectId(req.params.id) };
-    JQuestion.find(query, function(err, result){
-      if(err){
-         res.send({status: "error", message: err});
-      }else if(result == ""){
-         res.send({status: "error", message: "Question: "+req.params.id+" does not exist!"});
-      }else{ 
-        res.send({status: "success", message: "Success getting question: " + req.params.id, question: result});
-      } 
-    });
-  });
-
-  //gets a stanfordquestion of a given id, sends it to frontend
-  app.get('/stanfordquestiondisplay/:id', function(req, res){
-    console.log("id: " + req.params.id);
-    if(req.params.id == "" || !ObjectId.isValid(req.params.id)){
-         res.send({status: "error", message: "Question: "+req.params.id+" does not exist!"});
-      return 0;
-    }
-    var query = { _id: new ObjectId(req.params.id) };
-    StanfordQuestion.find(query, function(err, result){
-      if(err){
-         res.send({status: "error", message: err});
-      }else if(result == ""){
-         res.send({status: "error", message: "Question: "+req.params.id+" does not exist!"});
-      }else{
-        res.send({status: "success", message: "Success getting question: " + req.params.id, question: result});
-      }
-    });
-  });
-
-
-  app.post('/quizquestionedit', function(req, res){
-    if(req.user && req.user.permissions.admin && req.user.permissions.editQuestions){
-      //update the db
-      //var query = {id: req.body.id};
-      var query = { _id: new ObjectId(req.body.id) };
-      QuizQuestion.findOne(query, function(err, doc){
-        doc.category = req.body.category;
-        doc.raw = req.body.raw;
-        doc.label = req.body.label;
-        doc.save();
-        res.send({status: "success", message: "Question was Edited"});
-      });
-    }else{
-      //user does not have permission
-      res.send({status: "error", message: "User does not have permissions to edit questions!"});
-    }
-
-  });
-
-  app.post('/jquestionedit', function(req, res){
-    console.log("id: " + req.body.id);
-    if(req.user && req.user.permissions.admin && req.user.permissions.editQuestions){
-      //update the db
-      var query = { _id: new ObjectId(req.body.id) };
-      JQuestion.findOne(query, function(err, doc){
-      console.log("doc " + doc);
-        doc.category = req.body.category;
-        doc.question = req.body.question;
-        doc.answer = req.body.answer;
-        doc.save();
-        res.send({status: "success", message: "Question was Edited"});
-      });
-    }else{
-      //user does not have permission
-      res.send({status: "error", message: "User does not have permissions to edit questions!"});
-    }
-
-  });
-
-  //front end submits stanfordquestionedit post
-  app.post('/stanfordquestionedit', function(req, res){
-    console.log("id: " + req.body.id);
-    if(req.user && req.user.permissions.admin && req.user.permissions.editQuestions){
-      //update the db
-      var query = { _id: new ObjectId(req.body.id) };
-      StanfordQuestion.findOne(query, function(err, doc){
-      console.log("doc " + doc);
-        doc.category = req.body.category;
-        doc.question = req.body.question;
-        doc.answer = req.body.answer;
-        doc.save();
-        res.send({status: "success", message: "Question was Edited"});
-      });
-    }else{
-      //user does not have permission
-      res.send({status: "error", message: "User does not have permissions to edit questions!"});
-    }
-
-  });
 
   //============================================
   // MultiPlayer Related Routes
@@ -572,7 +636,7 @@ module.exports = function(app, passport){
 
   //process the login form
   app.post('/login', passport.authenticate('local-login',{
-    successRedirect : '/',
+    successRedirect : '/console',
     failureRedirect : '/login',
     failureFlash     : true
   }));
@@ -769,151 +833,8 @@ module.exports = function(app, passport){
 // Functions used by routes
 //==============================================
 
-//renders a question from the stanford collection
-function renderStanfordQuestion(req, res){
-  //first we get a random question from the stanfordQuestions
-  var filter = {};
-  var fields = {};
-  StanfordQuestion.findRandom(filter, fields, {limit: 1}, function(err, result){
-    if(err) throw err;
 
-    //get 11 more answers with the same category as the result, where the answer isn't the same
-    var filter = {answer: {$ne: result[0].answer}, category: result[0].category};
-    var fields = {answer: 1};//only get the answers
-    StanfordQuestion.findRandom(filter, fields, {limit: 11}, function(error, answers){
-      if(error) throw error;
-      
-      //if signed in, save score into session
-      if(req.user) req.session.score = req.user.gameinfo.score;
 
-      //splice the correct answer into the list of answers
-      var answerIndex = Math.floor(Math.random() * 12);
-      if(answers == null) return 0;
-      answers.splice(answerIndex, 0, {answer: result[0].answer});
-
-      //modify answers array, so answer is stored as "label" instead of answer
-      //this is for compatibility with the quizQuestion type
-      var modifiedAnswers = new Array();
-      for(var i = 0; i < answers.length; i++){
-        answers[i]["label"] = answers[i]["answer"];
-      }
-
-      var questionType = "stanfordQuestion";
-      res.render('index.ejs', {
-        title: "Quiz Game",
-        category: result[0].category,
-        question: result[0].question,
-        answer  : result[0].answer,
-        answers : answers,
-        answerIndex : answerIndex,
-        user: req.user,
-        session: req.session,
-        questionType: questionType,
-        questionId: result[0]._id
-      });
-    });
-    
-     //res.send(result[0].answer);
-    
-
-  });
-}
-
-function renderQuizQuestion(req, res){
-   // Get the count of all quizquestions
-    QuizQuestion.count().exec(function (err, count) {
-
-    // Get a random entry
-    var random = Math.floor(Math.random() * count)
-
-    // Again query all users but only fetch one offset by our random #
-    QuizQuestion.findOne().skip(random).exec(
-      function (err, result) {
-        if(!err){
-          var filter = {label: {$ne: result.label}, category: result.category};
-          var fields = {label: 1}; //only pull up the answers
-        QuizQuestion.findRandom( filter, fields, {limit: 11}, function(error, answers){
-            if(error)throw error;
-            
-            if(req.user)
-               req.session.score = req.user.gameinfo.score;
-            console.log("id: " + result._id);
-
-            //replace any occurance of the string "???" in db, with "
-            result.raw = result.raw.replace(new RegExp("???".replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), "\'");
-            result.raw = result.raw.replace(new RegExp("??".replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), "\'");
-        
-            var answerIndex = Math.floor(Math.random() * 12);
-            answers.splice(answerIndex, 0, {label: result.label});
-
-            var questionType = "quizQuestion";
-               res.render('index.ejs',{
-                title  : "Quiz Game",
-                category : result.category,
-                question : result.raw,
-                answer   : result.label,
-                answers : answers,
-                answerIndex : answerIndex,
-                user : req.user,
-                session : req.session,
-                questionType: questionType,
-                questionId : result._id
-              });
-          });
-        } 
-      })
-    })
-
-}
-
-//Renders a question from the jquestion collection
-function renderJQuestion(req, res){
-  //first we get a random question from the JQuestions    
-    var filter = {subDiscipline: {$exists: true}};
-    var fields = {}; //only pull up the answers
-    JQuestion.findRandom( filter, fields, {limit: 1}, function(err, result){
-      if(err) throw err;
-      //get 11 more answers from the same discipline as the result, where the answer isn't the same
-      var filter = {answer: {$ne: result[0].answer}, subDiscipline: result[0].subDiscipline};
-      //var filter = {discipline: "Science"};
-      //var fields = {}; //we only want to query for random answers
-      var fields = {answer: 1}; //only pull up the answers
-      JQuestion.findRandom(filter, fields, {limit: 11}, function(error, answers){
-        if(error) throw error;
-
-        //if signed in, save score into session
-        if(req.user) req.session.score = req.user.gameinfo.score;
-
-        //splice the correct answer into the list of answers
-        var answerIndex = Math.floor(Math.random() * 12);
-        if(answers == null)return 0;
-        answers.splice(answerIndex, 0, {answer: result[0].answer});
-
-        //modify answers array, so answer is stored as "label" instead of answer
-        //this is for compatibility with the quizQuestion type
-        
-        for(var i = 0; i < answers.length; i++){
-          answers[i]["label"] = answers[i]["answer"];
-        }
- 
-        console.log("result[0]._id: " + result[0]._id);
-     
-        var questionType = "jQuestion";
-        res.render('index.ejs', {
-          title: "Quiz Game",
-          category: result[0].category,
-          question: result[0].question,
-          answer  : result[0].answer,
-          answers : answers,
-          answerIndex: answerIndex,
-          user: req.user,
-          session: req.session,
-          questionType: questionType,
-          questionId : result[0]._id
-        });
-      });
-    });
-}
 
 function functionTest(){
   console.log("functionTEST CALLED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -924,3 +845,391 @@ function getRandomIntInclusive(min, max) {
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive 
 }
+
+function swap(results, firstIndex, secondIndex){
+  var temp = results[firstIndex];
+  results[firstIndex] = results[secondIndex];
+  results[secondIndex] = temp;
+}
+
+function selectionSort(results, myLoc){
+  console.log("sorting...");
+  var len = results.length;
+  var min;
+
+  for(var i = 0; i < len; i++){
+    min = i;
+    if(i % 500 == 0)console.log("Sorting Record " + i);
+
+    for(var j = i + 1; j < len; j++){
+      var propLoc1 = {
+          lat: results[j].lat,
+          lon: results[j].longi
+      }
+
+      var propLoc2 = {
+        lat: results[min].lat,
+        lon: results[min].longi
+      }
+
+      var distance1 = Distance.between(myLoc, propLoc1);
+      var distance2 = Distance.between(myLoc, propLoc2);
+      if(distance1 < distance2){
+        min = j;
+      }
+    }
+    
+    if(i != min){
+      swap(results, i, min);
+    }
+  }
+  console.log("Done Sorting!");
+  return results;
+}
+
+function mergeSort (arr, myLoc) {
+    if (arr.length < 2) {
+      return arr;
+    }
+
+    var mid = Math.floor(arr.length / 2);
+    var subLeft = mergeSort(arr.slice(0, mid), myLoc);
+    var subRight = mergeSort(arr.slice(mid), myLoc);
+
+
+    return merge(subLeft, subRight, myLoc);
+}
+
+function merge (node1, node2, myLoc) {
+    var result = [];
+    while (node1.length > 0 && node2.length > 0){
+         var propLoc1 = {
+           lat: node1[0].lat,
+           lon: node1[0].longi
+         }
+          var propLoc2 = {
+            lat: node2[0].lat,
+            lon: node2[0].longi
+          }
+
+         var distance1 = Distance.between(myLoc, propLoc1);
+         var distance2 = Distance.between(myLoc, propLoc2);
+         node1[0].distance = distance1;
+         node2[0].distance = distance2;
+         node1[0].val = calculateValue(node1[0]);
+         node2[0].val = calculateValue(node2[0]);
+         result.push(distance1 < distance2? node1.shift() : node2.shift());
+    }
+    return result.concat(node1.length? node1 : node2);
+}
+
+function calculateValue(node){
+  var baseValue = 10000;
+
+
+  var val = baseValue * 1;
+  return val;
+}
+
+
+//returns the company_value needed to get to the next level
+function calculateCashOnHandLimit(level){
+  var nextValue = calculateNextPortfolioValue(level) /2;
+  return nextValue;
+}
+
+//returns the company_value needed to get to the next level
+function calculateNextPortfolioValue(level){
+  var nextValue = 0;
+  switch(level){
+    case 0:
+      nextValue = 10000;
+    break;
+    case 1:
+      nextValue = 50000;
+    break;
+    case 2:
+      nextValue = 120000;
+    break;
+    case 3:
+      nextValue = 300000;
+    break;
+    case 4:
+      nextValue = 500000;
+    break;
+    case 5:
+      nextValue = 750000;
+    break;
+    case 6:
+      nextValue = 1200000;
+    break;
+    case 7:
+      nextValue = 3000000;
+    break;
+    case 8:
+      nextValue = 5000000;
+    break;
+    case 9:
+      nextValue = 7000000;
+    break;
+    case 10:
+      nextValue = 10000000;
+    break;
+    case 11:
+      nextValue = 50000000;
+    break;
+    case 12:
+      nextValue = 75000000;
+    break;
+    case 13:
+      nextValue = 100000000;
+    break;
+    case 14:
+      nextValue = 1000000000;
+    break;
+    case 15:
+      nextValue = 5000000000;
+    break;
+  }
+  return nextValue;
+}
+
+//returns the level based on the portfolio value
+function calculateLevel(company_value){
+  var level = 0;
+  if(company_value >= 0 && company_value < 10000){
+    level = 0;
+  }else if(company_value >= 10000 && company_value < 50000){
+    level = 1;
+  }else if(company_value >= 50000 && company_value < 120000){
+    level = 2;
+  }else if(company_value >= 120000 && company_value < 300000){
+    level = 3;
+  }else if(company_value >= 300000 && company_value < 500000){
+    level = 4;
+  }else if(company_value >= 500000 && company_value < 750000){
+    level = 5;
+  }else if(company_value >= 750000 && company_value < 1200000){
+    level = 6;
+  }else if(company_value >= 1200000 && company_value < 3000000){
+    level = 7;
+  }else if(company_value >= 3000000 && company_value < 5000000){
+    level = 8;
+  }else if(company_value >= 5000000 && company_value < 7000000){
+    level = 9;
+  }else if(company_value >= 7000000 && company_value < 10000000){
+    level = 10;
+  }else if(company_value >= 10000000 && company_value < 50000000){
+    level = 11;
+  }else if(company_value >= 50000000 && company_value < 75000000){
+    level = 12;
+  }else if(company_value >= 75000000 && company_value < 100000000){
+    level = 13;
+  }else if(company_value >= 100000000 && company_value < 1000000000){
+    level = 14;
+  }else{
+    level = 15;
+  }
+  return level;
+}
+
+/*
+  Calculates the value of a city
+  Based on it's city_type and
+  it's distance from coffee creek
+*/
+function calculateCityValue(city){
+  var coffeeCreek = {
+    lat: 41.08749,
+    lon: -122.717445
+  }
+  var cityLoc = {
+    lat: city.lat,
+    lon: city.longi
+  }
+  
+  var base = 100000;
+  var city_amt = getCityAmt(city.city_type);
+  var distance = Distance.between(cityLoc, coffeeCreek);
+  var distance_multiplier = distanceFunction(distance);
+  var value = base * city_amt;
+  value = value * distance_multiplier;
+
+  //multiply by a random value that was generated in the database
+  //the value is between -1 and 1
+  //anything that is negative gets multiplied by -10  
+  //the final thing is multiplied by value
+  var rand_from_db = city.rand;
+  var multiplier = 1;
+  if(rand_from_db < 0){
+    multiplier = rand_from_db * -100;
+  }else{
+    if(rand_from_db >= .4 && rand_from_db < .5){
+      multiplier = 100000;
+    }else if(rand_from_db >= .1 && rand_from_db < .3){
+      multiplier = rand_from_db * .001;
+    }else if(rand_from_db >= .3 && rand_from_db < .4){
+      multiplier = rand_from_db * .01;
+    }else if(rand_from_db >= .5 && rand_from_db < .8){
+      multiplier = rand_from_db * .1;
+    }else{
+      multiplier = rand_from_db;
+    }
+  }
+
+  if(multipier = 0) multiplier = 1;
+  value = value * multiplier;;
+
+
+  return value;
+}
+
+//returns a multiplier based on city_type
+function getCityAmt(city_type){
+  var returnVal = 0;
+  switch(city_type){
+    case "Other":
+      returnVal = 1;
+    break;
+    case "Provincial capital":
+      //returnVal = 50;
+      returnVal = 500;
+    break;
+    case "Provincial capital enclave":
+     // returnVal = 175;
+      returnVal = 2500;
+    break;
+    case "National and provincial capital":
+      //returnVal = 250;
+      returnVal = 10000;
+    break;
+    case "National capital":
+      //returnVal = 500;
+      returnVal = 50000;
+    break;
+    case "National capital and provincial capital enclave":
+      //returnVal = 1000;
+      returnVal = 1000000;
+    break;
+  }
+  return returnVal;
+}
+
+function distanceFunction(distance){
+  var returnVal;
+  //returnVal = -0.8 * Math.log(distance * 100000) + 20;
+  //returnVal = 100 / (.004 * (distance + 300));
+  //returnVal = (-.001 * (distance*6372.8)) + 50;
+  returnVal = (-1/220) * (distance * 6372.8) + 50;
+  //console.log("distance: " + (distance*6372.8) + "  multiplier: " + returnVal);
+  return returnVal;
+}
+
+/*simulates a timestep in the game
+  goes through every players property and generates cash
+  based on what the player ownes
+*/
+function timeStep(numSteps, currentStep = 0){
+  ticks++;
+  console.log("timeStep("+numSteps+", "+currentStep+"): " + ticks);
+  //loop through all users
+  //sub loop through users owned propertys
+  //find matches to cities
+  //calculate how much the player owns, how much that is worth
+  //use calculations in viewProperty to calculate new cash
+  //update new cash, and how much each property has made, and 
+  //update user.income.last_day
+  Users.find({ },{},).exec(function(err, allusers){
+    if(err)throw err;
+    //get a list of each property id any user has access to
+    var all_properties_owned_ids = [];
+    for(var i = 0; i < allusers.length; i++){
+      //loop through each users user.property.owned
+      for(var j = 0; j < allusers[i].property.owned.length; j++){
+        all_properties_owned_ids.push(allusers[i].property.owned[j].property_id);
+      }
+    }
+    //now all_properties_owned_ids has the id of every property a user owns
+    //lets query the database for all cities with those id's
+      var obj_ids = all_properties_owned_ids.map(function(id) { return ObjectId(id); });
+      Cities.find({_id: {$in: obj_ids}},{},).exec(function(err, allcities){
+        //allcities now has every city that is owned
+        //loop through each user.property.owned, find it's property_id
+        //get the cooresponding info from allcities
+        for(i = 0; i < allusers.length; i++){
+          for(var j = 0; j < allusers[i].property.owned.length; j++){
+            //now loop through all cities and find the cooresponding id
+            for(var k = 0; k < allcities.length; k++){
+              if(allusers[i].property.owned[j].property_id == allcities[k]._id){
+                //we've found a match
+                var city_value = calculateCityValue(allcities[k]);
+                var city_value_per_share = city_value / 100;
+                var shares_owned = allusers[i].property.owned[j].percent_owned;
+                var value_city_owned = shares_owned * city_value_per_share;
+                //console.log("user: " + allusers[i].company_name + " owns " + value_city_owned + " of " + allcities[k].city_name);
+
+                //now we update cash earned and user.income.last_day, and property.owned cash earnedi
+                var daily_income = value_city_owned * .1001;
+                var daily_cost   = value_city_owned * .1;
+                var daily_profit = daily_income - daily_cost;
+                var cash_earned = daily_profit;
+
+                  allusers[i].property.owned[j].total_earned += cash_earned;
+                  allusers[i].cash_on_hand += cash_earned;
+                  
+                  if(ticks % 10080 == 0){//a month has passed
+                    //console.log("month to year: " + allusers[i].income.last_month);
+                    allusers[i].income.last_year += allusers[i].income.last_month;
+                    allusers[i].income.last_month = 0;
+                  }
+                  
+                  if(ticks % 1440 == 0){//a week has passed
+                    //console.log("week to month: " + allusers[i].income.last_week);
+                    allusers[i].income.last_month += allusers[i].income.last_week;
+                    allusers[i].income.last_week = 0;
+                  }
+                 
+                   //keep income record
+                  if(ticks % 60 == 0){ //a day has passed
+                    //console.log("day to week: " + allusers[i].income.last_day);
+                    allusers[i].income.last_week += allusers[i].income.last_day;
+                    allusers[i].income.last_day = 0;
+                  }
+
+                  allusers[i].income.last_day += cash_earned;
+                  break;
+              }
+            }
+            allusers[i].save();
+          }
+        }
+        /*
+        if(currentStep >= numSteps){
+          console.log("saving users");
+          for(var i = 0; i < allusers.length; i++){
+            allusers[i].save();
+          }
+        }else{
+          timeStep(numSteps, currentStep + 1);
+        }
+        */
+  
+      });
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -24,10 +24,10 @@ var server = http.createServer(app);
 /**
  * create socket.io
  */
-var socketApi = require('../routes/socketApi');
-var io = socketApi.io;
-io.attach(server);
-app.io = io;
+//var socketApi = require('../routes/socketApi');
+//var io = socketApi.io;
+//io.attach(server);
+//app.io = io;
 
 /**
  * Listen on provided port, on all network interfaces.
