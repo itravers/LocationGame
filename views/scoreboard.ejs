@@ -46,6 +46,7 @@
       var username = "";
       var photo = "/images/signedout.png";
       var isme = false;
+      var companyname = results[i].company_name;
       if(results[i].facebook.name != null){
         username = results[i].facebook.name;
         photo = results[i].facebook.photo;
@@ -80,7 +81,7 @@
     %>
       <tr class="<%= ismeclass %>">
         <th scope="row"><%=i+1%></th>
-        <td><%= username %></td> 
+        <td><%= companyname %></td> 
         <td><img src="<%= photo %>" height="30px" width="30px"></img></td> 
         <td><%= portfolio_value %></td> 
       </tr>
