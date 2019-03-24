@@ -22,12 +22,6 @@
   var property_cost_text = convertToMoney(property_cost);
 
   var property_cost_per_share = property_cost / 100;
-  var shares = 50;
-  var current_property_cost = property_cost_per_share * shares;
-  var affordable = false;
-
-  var daily_income = current_property_cost * .15;
-  var daily_cost   = current_property_cost * .1;
   var daily_profit = daily_income - daily_cost;
   var shares_owned = 0;
 
@@ -39,10 +33,18 @@
   }
   var shares_available = shares_owned;
   var initial_selection = shares_available /2;
+  var shares = initial_selection;
+  var current_property_cost = property_cost_per_share * shares;
+  var affordable = false;
+
+  var daily_income = current_property_cost * .15;
+  var daily_cost   = current_property_cost * .1;
 
   function convertToMoney(number){
+    var decimal = 3;
+    if(number < 1000) decimal = 0;
     var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-    money = (money).substring(0, money.length - 3);
+    money = (money).substring(0, money.length - decimal);
     money = "$"+money;
     return money;
   }
@@ -122,8 +124,10 @@
   }
 
   function convertToMoney(number){
+    var decimal = 3;
+    if(number < 1000) decimal = 0;
     var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-    money = (money).substring(0, money.length - 3);
+    money = (money).substring(0, money.length - decimal);
     money = "$"+money;
     return money;
   }

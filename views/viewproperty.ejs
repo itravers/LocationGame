@@ -34,13 +34,15 @@
     current_property_cost = property_cost_per_share;
   }
 
-  var daily_income = current_property_cost * .1001;
-  var daily_cost   = current_property_cost * .1;
-  var daily_profit = daily_income - daily_cost;
+  var daily_income = (current_property_cost * .1001) * 60;
+  var daily_cost   = (current_property_cost * .1) * 60;
+  var daily_profit = (daily_income - daily_cost)*1;
 
   function convertToMoney(number){
+    var decimal = 3;
+    if(number < 1000) decimal = 0;
     var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-    money = (money).substring(0, money.length - 3);
+    money = (money).substring(0, money.length - decimal);
     money = "$"+money;
     return money;
   }
@@ -55,8 +57,8 @@
   <hr/>
   <div id="property_price_text">Price<b><div id="property_price_value"><%= convertToMoney(current_property_cost) %></div></b></div>
   <div class="row">
-    <div class="col-sm-6 center_gray">Daily Income</div>
-    <div class="col-sm-6 center_gray">Daily Cost</div>
+    <div class="col-sm-6 center_gray">Hourly Income</div>
+    <div class="col-sm-6 center_gray">Hourly Cost</div>
   </div>
   <div class="row">
     <div class="col-sm-6 center_black" id="daily_income_value"><%= convertToMoney(daily_income) %></div>
@@ -77,7 +79,7 @@
 </div>
 
   <div class="container col-sm-12" id="buy_property_footer">  
-  <div id="daily_profit_text">Daily Profit  <div id="daily_profit_value"><%= convertToMoney(daily_profit) %></div></div>
+  <div id="daily_profit_text">Hourly Profit: <div id="daily_profit_value"><%= convertToMoney(daily_profit) %></div></div>
   </div>
   <footer class="fixed-bottom">
     <% include partials/footer %>
@@ -102,9 +104,9 @@
 
   var property_cost_per_share = <%= property_cost_per_share %>;
   var current_property_cost = <%= current_property_cost %>;
-  var daily_income = current_property_cost * .1001;
-  var daily_cost   = current_property_cost * .1;
-  var daily_profit = daily_income - daily_cost;
+  var daily_income = (current_property_cost * .1001) * 60;
+  var daily_cost   = (current_property_cost * .1) * 60;
+  var daily_profit = (daily_income - daily_cost) * 1;
   var cash_on_hand = <%= cash_on_hand %>;
   var buttonDisabled = false;
   var shares;
@@ -119,9 +121,9 @@
   slider.oninput = function() {
     output.innerHTML = this.value + "%";
     current_property_cost = property_cost_per_share * this.value;
-    daily_income = current_property_cost * .1001;
-    daily_cost   = current_property_cost * .1;
-    daily_profit = daily_income - daily_cost;
+    daily_income = (current_property_cost * .1001) * 60;
+    daily_cost   = (current_property_cost * .1) * 60;
+    daily_profit = (daily_income - daily_cost) * 1;
     $("#property_price_value").text(convertToMoney(current_property_cost));
     $("#daily_income_value").text(convertToMoney(daily_income));
     $("#daily_cost_value").text(convertToMoney(daily_cost));
@@ -138,8 +140,10 @@
   }
 
   function convertToMoney(number){
+    var decimal = 3;
+    if(number < 1000) decimal = 0;
     var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-    money = (money).substring(0, money.length - 3);
+    money = (money).substring(0, money.length - decimal);
     money = "$"+money;
     return money;
   }

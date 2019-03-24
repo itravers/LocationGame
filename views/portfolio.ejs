@@ -10,9 +10,11 @@
 
 <%
   function convertToMoney(number){
+    var decimal = 3;
+    if(number < 1000) decimal = 0;
     if(number == 0) return "$0";
     var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-    money = (money).substring(0, money.length - 3);
+    money = (money).substring(0, money.length - decimal);
     money = "$"+money;
     return money;
   }

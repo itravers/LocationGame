@@ -12,7 +12,7 @@
   var ticks = ticks;
   console.log("ticks: " + ticks);
   var company_value = user.company_value;
-  console.log("companyvaluefront" + company_value);
+  console.log("companyvaluefront: " + company_value);
   company_value = convertToMoney(company_value); 
  
   var portfolio_value = user.portfolio_value;
@@ -25,36 +25,24 @@
   cash_tied_up = convertToMoney(cash_tied_up);
   
   var income_last_day = user.income.last_day;
-  income_last_day = (income_last_day).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-  income_last_day = (income_last_day).substring(0, income_last_day.length - 3);
-  income_last_day = "$"+income_last_day;
+  income_last_day = convertToMoney(income_last_day);
   
   var income_last_week = user.income.last_week;
-  income_last_week = (income_last_week).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-  income_last_week = (income_last_week).substring(0, income_last_week.length - 3);
-  income_last_week = "$"+income_last_week;
+  income_last_week = convertToMoney(income_last_week);
   
   var income_last_month = user.income.last_month;
-  income_last_month = (income_last_month).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-  income_last_month = (income_last_month).substring(0, income_last_month.length - 3);
-  income_last_month = "$"+income_last_month;
+  income_last_month = convertToMoney(income_last_month);
   
   var income_last_year = user.income.last_year;
-  income_last_year = (income_last_year).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-  income_last_year = (income_last_year).substring(0, income_last_year.length - 3);
-  income_last_year = "$"+income_last_year;
-  
+  income_last_year = convertToMoney(income_last_year);
+
   var portfolio_next_value = user.portfolio_next_value;
-  portfolio_next_value = (portfolio_next_value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-  portfolio_next_value = (portfolio_next_value).substring(0, portfolio_next_value.length - 3);
-  portfolio_next_value = "$"+portfolio_next_value;
-  console.log(portfolio_next_value);
+  portfolio_next_value = convertToMoney(portfolio_next_value);
+  //console.log(portfolio_next_value);
 
    
   var cash_on_hand_limit = user.cash_on_hand_limit;
-  cash_on_hand_limit = (cash_on_hand_limit).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-  cash_on_hand_limit = (cash_on_hand_limit).substring(0, cash_on_hand_limit.length - 3);
-  cash_on_hand_limit = "$"+cash_on_hand_limit;
+  cash_on_hand_limit = convertToMoney(cash_on_hand_limit);
   
   var portfolio_pct = (user.portfolio_value / user.portfolio_next_value) * 100;
   var cash_on_hand_pct = (user.cash_on_hand / user.cash_on_hand_limit) * 100;  
@@ -63,7 +51,8 @@
   var company_name = user.company_name;
   var groupies = user.groupies;  
 
-  function convertToMoney(portfolio_value){
+  function convertToMoney(number){
+    if(number ==0) return "$0.00";
     var decimals = 3;
     if(number < 1000) decimals = 0;
     var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
@@ -137,7 +126,7 @@
       <div class="col-sm-3">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Last Day</h5>
+            <h5 class="card-title">Last Hour</h5>
             <p class="card-text" id="coin_balance_value"><%= income_last_day %></p>
           </div>
         </div>
@@ -145,7 +134,7 @@
       <div class="col-sm-3">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Last Week</h5>
+            <h5 class="card-title">Last Day</h5>
             <p class="card-text" id="coin_balance_value"><%= income_last_week %></p>
           </div>
         </div>
@@ -153,7 +142,7 @@
       <div class="col-sm-3">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Last Month</h5>
+            <h5 class="card-title">Last Week</h5>
             <p class="card-text" id="coin_balance_value"><%= income_last_month %></p>
           </div>
         </div>
@@ -161,7 +150,7 @@
       <div class="col-sm-3">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Last Year</h5>
+            <h5 class="card-title">All Time</h5>
             <p class="card-text" id="coin_balance_value"><%= income_last_year %></p>
           </div>
         </div>

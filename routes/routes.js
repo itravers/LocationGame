@@ -18,7 +18,7 @@ var ticks = 0;
 
 var j = schedule.scheduleJob('* * * * *', function(){
   var delayTime = 15000;
-  timeStep();
+  timeStep(1);
 /*  delay(function(){
     timeStep();
     delay(function(){
@@ -397,10 +397,7 @@ module.exports = function(app, passport){
 
   app.get('/simulateTimeStep/:numsteps', function(req, res){
     var numsteps = parseInt(req.params.numsteps);
-    for(var i = 0; i < numsteps; i++){
-      console.log("timestepping...");
-      timeStep();
-    }
+    timeStep(numsteps);
     res.send(numsteps + " tick[s] done");
   });
 
@@ -1132,9 +1129,9 @@ function distanceFunction(distance){
   goes through every players property and generates cash
   based on what the player ownes
 */
-function timeStep(){
+function timeStep(numSteps, currentStep = 0){
   ticks++;
-  console.log("timeStep(): " + ticks);
+  console.log("timeStep("+numSteps+", "+currentStep+"): " + ticks);
   //loop through all users
   //sub loop through users owned propertys
   //find matches to cities
@@ -1180,20 +1177,20 @@ function timeStep(){
                   allusers[i].property.owned[j].total_earned += cash_earned;
                   allusers[i].cash_on_hand += cash_earned;
                   
-                  if(ticks % 120 == 0){//a month has passed
+                  if(ticks % 10080 == 0){//a month has passed
                     //console.log("month to year: " + allusers[i].income.last_month);
                     allusers[i].income.last_year += allusers[i].income.last_month;
                     allusers[i].income.last_month = 0;
                   }
                   
-                  if(ticks % 28 == 0){//a week has passed
+                  if(ticks % 1440 == 0){//a week has passed
                     //console.log("week to month: " + allusers[i].income.last_week);
                     allusers[i].income.last_month += allusers[i].income.last_week;
                     allusers[i].income.last_week = 0;
                   }
                  
                    //keep income record
-                  if(ticks % 4 == 0){ //a day has passed
+                  if(ticks % 60 == 0){ //a day has passed
                     //console.log("day to week: " + allusers[i].income.last_day);
                     allusers[i].income.last_week += allusers[i].income.last_day;
                     allusers[i].income.last_day = 0;
@@ -1203,9 +1200,20 @@ function timeStep(){
                   break;
               }
             }
-                  allusers[i].save();
+            allusers[i].save();
           }
         }
+        /*
+        if(currentStep >= numSteps){
+          console.log("saving users");
+          for(var i = 0; i < allusers.length; i++){
+            allusers[i].save();
+          }
+        }else{
+          timeStep(numSteps, currentStep + 1);
+        }
+        */
+  
       });
   });
 }
