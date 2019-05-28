@@ -630,7 +630,7 @@ module.exports = function(app, passport){
     //render the page, and pass in flash data, if it exists
     res.render('login.ejs', {
       message: req.flash('loginMessage'),
-      title: "Quiz Game Login"
+      title: "Location Game Login"
     });
   });
 
