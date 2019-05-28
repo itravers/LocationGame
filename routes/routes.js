@@ -1109,9 +1109,23 @@ function timeStep(numSteps, currentStep = 0){
                 var daily_cost   = value_city_owned * .1;
                 var daily_profit = daily_income - daily_cost;
                 var cash_earned = daily_profit;
-
-                  allusers[i].property.owned[j].total_earned += cash_earned;
-                  allusers[i].cash_on_hand += cash_earned;
+                
+                  //this is where the money earned is changed, we need to check
+                  //to make sure our cash on hand isn't going to go over the limit.
+                  var level = allusers[i].level;
+                  var cashOnHand = allusers[i].cash_on_hand;
+                  var cashLimit = calculateCashOnHandLimit(level);
+                  if((cashOnHand + cash_earned) <= cashLimit ){
+                    allusers[i].property.owned[j].total_earned += cash_earned;
+                    allusers[i].cash_on_hand += cash_earned;
+                  }else{
+                    var diff = cashLimit - cashOnHand;
+                    if(diff > 0){
+                      console.log("Adding limited cash: " + diff);
+                      allusers[i].property.owned[j].total_earned += diff;
+                      allusers[i].cash_on_hand += diff;
+                    }
+                  }
                   
                   if(ticks % 10080 == 0){//a month has passed
                     //console.log("month to year: " + allusers[i].income.last_month);
