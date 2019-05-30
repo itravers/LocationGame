@@ -961,6 +961,7 @@ function calculateNextPortfolioValue(level){
 
 //returns the level based on the portfolio value
 function calculateLevel(company_value){
+  if(company_value <= 0)return 0;
   var level = 0;
   var m1 = 1.48825;
   var n1 = .00008638;
