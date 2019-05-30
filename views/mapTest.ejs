@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <% include partials/head %>
+  <style>
+        body        { word-wrap:break-word; }
+  </style>
+  <script>
+    //don't penalize if user came to this page
+    sessionStorage.removeItem("not_answered");
+  </script>
+
+</head>
+<body>
+<header>
+  <% include partials/header %>
+</header>
+
+<div class="container col-sm-12">
+
+    <div class="page-header text-center">
+        <h1><span class="fa fa-diamond"></span> Scoreboard</h1>
+    </div>
+
+  <table class="table table-hover">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>City</th>
+      <th>State</th>
+    </tr>
+  </thead>
+</table>
+
+
+</div>
+
+<footer>
+    <% include partials/footer %>
+  </footer>
+
+</body>
+</html>

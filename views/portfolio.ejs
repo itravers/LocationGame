@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include partials/head %>
+</head>
+<body>
+<header>
+  <% include partials/header %>
+</header>
+
+<%
+  function convertToMoney(number){
+    var decimal = 3;
+    if(number < 1000) decimal = 0;
+    if(number == 0) return "$0";
+    var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    money = (money).substring(0, money.length - decimal);
+    money = "$"+money;
+    return money;
+  }
+
+  function getIconClass(property_cost){
+    var returnVal = "fa-cube"
+    if(property_cost < 80000){
+      returnVal = "fa-cube";
+    }else if(property_cost >= 80000 && property_cost < 1000000){
+      returnVal = "fa-cubes";
+    }else if(property_cost >= 1000000 && property_cost < 10000000){
+      returnVal = "fa-building";
+    }else if(property_cost >= 10000000 && property_cost < 100000000){
+      returnVal = "fa-bank";
+    }else if(property_cost >= 100000000 && property_cost < 1000000000){
+      returnVal = "fa-globe";
+    }else if(property_cost >= 1000000000 && property_cost < 10000000000){
+      returnVal = "fa-dollar";
+    }else if(property_cost >= 10000000000 && property_cost < 500000000000){
+      returnVal = "fa-viacoin";
+    }else if(property_cost >= 500000000000 && property_cost < 5000000000000){
+      returnVal = "fa-rebel";
+    }else{
+      returnVal = "fa-bitcoin";
+    }
+    return returnVal;
+
+  }
+
+
+%>
+
+<div class="container col-sm-12">
+  <div class="row border">
+    <div class="col-sm-6 buy_info">
+      <div>Total Properties Owned</div>
+      <div class="buy_info_num"><%= user.property.total_properties %></div>
+    </div>
+    <div class="col-sm-6 buy_info">
+      <div>Maximum Properties</div>
+      <div class="buy_info_num"><%= user.property.max_properties %></div>
+    </div>
+ <!--
+    <div class="col-sm-3 buy_info">
+      <div>Properties Pending</div>
+      <div class="buy_info_num"><%= user.property.total_pending %></div>
+    </div>
+    <div class="col-sm-3 buy_info">
+      <div>Maximum Pending</div>
+      <div class="buy_info_num"><%= user.property.max_pending %></div>
+    </div>
+-->
+  </div>
+  <ul class="list-group">
+    <% for(var i = 0; i < results.length; i++){ %>
+    <%
+      var city_name = results[i].city_name;
+      var percent_owned = amountIOwn[i];
+      var total_earned = totalEarned[i];
+      var property_cost = (propertyCost[i]/100) * percent_owned;;
+      var _id = results[i]._id;
+      var icon_class = getIconClass(propertyCost[i]);
+    %>
+   
+    <a href="/viewsellproperty/<%= _id %>">
+      <li class="list-group-item">
+        <span class="fa wide_span <%= icon_class %>"></span> <%= city_name %>
+          <div class="container col-sm-6" id="portfolio_info">
+        <span>
+        <div id="property_profit">Profit: </div><b><%= convertToMoney(total_earned) %></b></span>
+        <span class="badge" id="largebadge"><%= percent_owned %>% Owned @ <%= convertToMoney(property_cost) %></span>
+        </div>
+      </li>
+    </a>
+
+    <% } %>
+  </ul>
+</div>
+  
+  <footer>
+    <% include partials/footer %>
+  </footer>
+
+</body>
+</html>

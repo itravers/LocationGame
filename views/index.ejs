@@ -1,101 +1,83 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
   <% include partials/head %>
-  <script>var answerIndex = <%= answerIndex %></script>
-  <% if(locals.user){ %>
-    <script>var loggedIn = true;</script>
-  <% } else{%>
-    <script>var loggedIn = false;</script>
-  <% } %>
+  <style>
+        body        { word-wrap:break-word; }
+  </style>
   <script>
-    var answersLength = <%= answers.length %>;
-  </script>
-  <script>
-    var questionId = "<%= questionId %>";
-    var questionType = "<%= questionType %>";
+    //don't penalize if user came to this page
+    sessionStorage.removeItem("not_answered");
   </script>
 
-  <script src="/javascripts/randomquestion.js"></script>
 </head>
 <body>
 <header>
   <% include partials/header %>
 </header>
 
-<div class="container">
-<!-- Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title" id="myModalLabel">Report Problem</h4>
-      </div>
-      <div class="modal-body">
-        <b> What is the problem with this question?</b><br>
-        <div class="radio">
-          <label><input type="radio" name="optradio" checked>Malformed Question</label>
-        </div>
-        <div class="radio">
-          <label><input type="radio" name="optradio">Wrong Answer</label>
-        </div>
-        <div class="radio">
-          <label><input type="radio" name="optradio">Other</label>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger" onclick="reportProblemClicked()" data-dismiss="modal">Send Report</button>
-      </div>
+<div class="container col-sm-12">
+
+    <div class="page-header text-center">
+        <h1><span class="fa fa-diamond"></span> Scoreboard</h1>
     </div>
-  </div>
-</div>
-</div>
 
+  <table class="table table-hover">
+  <thead>
+    <tr>
+      <th></th>
+      <th>City Name</th>
+      <th>Lat</th>
+      <th>Lon</th>
+      <th>Country Code</th>
+      <th>Country Name</th>
+      <th>City Type</th>
+      <th>Distance</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
 
-  <div class="container" id="quizgamescore">
-    <% if(locals.user){%>
-     Score <div id="score"><%= locals.session.score %></div>
-    <% }else{ %>
-    <a href="/login">Login To Keep Score / Multiplayer</a>
+    <% for(var i =0; i < results.length; i++){ %>
+    <%
+      /* venues
+      var venue_id = results[i].venue_id;
+      var category  = results[i].venue_category_name;
+      var country_code = results[i].country_code;
+      var distance = results[i].distance;
+      var lat = results[i].lat;
+      var longi = results[i].longi;
+      */
+      var city_name = results[i].city_name        
+      var lat = results[i].lat;
+      var longi = results[i].longi;
+      var country_code = results[i].country_code;
+      var country_name = results[i].country_name;
+      var city_type = results[i].city_type;
+      var distance = results[i].distance;
+      var val = 1.22;
+
+    %>
+      <tr>
+        <th scope="row"><%=i+1%></th>
+        <td><%= city_name %></td> 
+        <td><%= lat %></td> 
+        <td><%= longi %></td> 
+        <td><%= country_code %></td> 
+        <td><%= country_name %></td> 
+        <td><%= city_type %></td> 
+        <td><%= distance %></td> 
+        <td><%= val %></td> 
+      </tr>
     <% } %>
-  </div>
+  
+  </tbody>
+</table>
 
-  <div class="container col-sm-10 col-sm-offset-1" id="quizgamequestion">
-    <p id="quizgamecategory">
-      <%= category %>
-      <br>
-      <a class="reportProblem" data-toggle="modal" data-target="#myModal" href="">Report Problem With Question</a>
-    </p>
-    <p>
-      <%= question %>
-    </p>
-  </div>
 
-<% if(answers.length == 12){ %>
+</div>
 
-  <div class="container col-md-12" id="quizgameanswers">
-    <div class="btn-group-lg btn-group-justified row">
-      <% var i = 0 %>
-      <% for(i = i; i < 4; i++){ %>
-        <a href="#" onclick="answerClicked('<%= i %>')" id="<%= i %>" class="btn btn-outline-primary col-md-3 btn-responsive"><%= answers[i].label %></a>
-      <% } %> 
-    </div> 
-    <div class="btn-group-lg btn-group-justified row">
-      <% for(i = i; i < 8; i++){ %>
-        <a href="#" onclick="answerClicked('<%= i %>')" id="<%= i %>" class="btn btn-outline-primary col-md-3 btn-responsive"><%= answers[i].label %></a>
-      <% } %> 
-    </div> 
-    <div class="btn-group-lg btn-group-justified row">
-      <% for(i = i; i < 12; i++){ %>
-        <a href="#" onclick="answerClicked('<%= i %>')" id="<%= i %>" class="btn btn-outline-primary col-md-3 btn-responsive"><%= answers[i].label %></a>
-      <% } %> 
-    </div>
-  </div>
-
-<% }//end answers.length %>
-
-  <footer>
+<footer>
     <% include partials/footer %>
   </footer>
 

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include partials/head %>
+</head>
+<body>
+<header>
+  <% include partials/header %>
+</header>
+
+<%
+  var ticks = ticks;
+  console.log("ticks: " + ticks);
+  var company_value = user.company_value;
+  console.log("companyvaluefront: " + company_value);
+  company_value = convertToMoney(company_value); 
+ 
+  var portfolio_value = user.portfolio_value;
+  portfolio_value = convertToMoney(portfolio_value);
+  
+  var cash_on_hand = user.cash_on_hand;
+  cash_on_hand = convertToMoney(cash_on_hand);
+  
+  var cash_tied_up = user.cash_tied_up;
+  cash_tied_up = convertToMoney(cash_tied_up);
+  
+  var income_last_day = user.income.last_day;
+  income_last_day = convertToMoney(income_last_day);
+  
+  var income_last_week = user.income.last_week;
+  income_last_week = convertToMoney(income_last_week);
+  
+  var income_last_month = user.income.last_month;
+  income_last_month = convertToMoney(income_last_month);
+  
+  var income_last_year = user.income.last_year;
+  income_last_year = convertToMoney(income_last_year);
+
+  var portfolio_next_value = user.portfolio_next_value;
+  portfolio_next_value = convertToMoney(portfolio_next_value);
+  //console.log(portfolio_next_value);
+
+   
+  var cash_on_hand_limit = user.cash_on_hand_limit;
+  cash_on_hand_limit = convertToMoney(cash_on_hand_limit);
+  
+  var portfolio_pct = (user.portfolio_value / user.portfolio_next_value) * 100;
+  var cash_on_hand_pct = (user.cash_on_hand / user.cash_on_hand_limit) * 100;  
+
+  var level = user.level;
+  var company_name = user.company_name;
+  var groupies = user.groupies;  
+
+  function convertToMoney(number){
+    if(number ==0) return "$0.00";
+    var decimals = 3;
+    if(number < 1000) decimals = 0;
+    var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    money = (money).substring(0, money.length - decimals);
+    money = "$"+money;
+    return money;
+  }
+%>
+
+<div class="container col-sm-12">
+
+  <div class="container" id="main_level_label">Level <%= level %></div>
+  <img src="images/signedout.png" class="center-block img-responsive" id="avatar_image"/>
+  <div class="container" id="main_level_label"><%= company_name %></div>
+  <br>
+  <div class="container" id="company_value_label">
+    Company Value
+  </div>
+  <div class="container" id="company_value">
+    <%= company_value %>
+  </div>
+
+  <div class="container" id="portfolio_value_label">
+    Portfolio Value
+  </div>
+  <span class="fa-stack fa-2x" id="user_level_label">
+    <i class="fa fa-circle-o fa-stack-2x"></i>
+    <strong class="fa-stack-1x"><%= level + 1 %></strong>
+  </span>
+  <div class="progress container col-sm-10 company_slider">
+    <div class="progress-bar" role="progressbar" style="width: <%= portfolio_pct %>%;" aria-valuenow="<%= portfolio_pct %>" aria-valuemin="0" aria-valuemax="100">
+    </div>
+      <div class="company_slider_text"><%= portfolio_value %></div>
+  </div>
+  <div class="container" id="next_level_label">
+    Need <%= portfolio_next_value %> For Next Level
+  </div>
+
+  <br><br>
+
+  <div class="container" id="portfolio_value_label">
+    Cash On Hand
+  </div>
+  <span class="fa-stack fa-2x" id="user_level_label">
+    <i class="fa fa-circle-o fa-stack-2x"></i>
+    <strong class="fa-stack-1x">+</strong>
+  </span>
+  <div class="progress container col-sm-10 company_slider">
+    <div class="progress-bar" role="progressbar" style="width: <%= cash_on_hand_pct %>%;" aria-valuenow="<%= cash_on_hand_pct %>" aria-valuemin="0" aria-valuemax="100">
+    </div>
+      <div class="company_slider_text"><%= cash_on_hand %></div>
+  </div>
+  <div class="container" id="next_level_label">
+    Limit <%= cash_on_hand_limit %>
+  </div>
+
+  <div class="container" id="cashtied_label">
+    Cash Tied Up
+  </div>
+  <div class="container" id="cashtied_value">
+    <%= cash_tied_up %>
+  </div>
+  <br>
+  <hr/>
+  
+  <div class="container" id="income_label">
+    Income
+  </div>
+  <div class="container col-sm-12">
+    <div class="row">
+      <div class="col-sm-3">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Last Hour</h5>
+            <p class="card-text" id="coin_balance_value"><%= income_last_day %></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Last Day</h5>
+            <p class="card-text" id="coin_balance_value"><%= income_last_week %></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Last Week</h5>
+            <p class="card-text" id="coin_balance_value"><%= income_last_month %></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">All Time</h5>
+            <p class="card-text" id="coin_balance_value"><%= income_last_year %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <br>
+  <hr/>
+
+  <div class="container col-sm-10">
+    <div class="row">
+      <div class="col-sm-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Groupies Balance</h5>
+            <p class="card-text" id="coin_balance_value"><%= groupies %><span class="fa fa-diamond"></span>
+</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Buy Groupies<span class="fa fa-cart-plus"></span>
+</h5>
+            <p class="card-text">Buy Groupies From Our Store!</p>
+            <a href="#" class="btn btn-primary">Store</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Watch Ad<span class="fa fa-audio-description"></span>
+</h5>
+            <p class="card-text">Watch an ad for some free groupies!</p>
+            <a href="#" class="btn btn-primary">Watch</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <footer>
+    <% include partials/footer %><p class="text-center text-muted"><%= ticks %></p>
+  </footer>
+
+</body>
+</html>

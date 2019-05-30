@@ -6,14 +6,239 @@ a {
   color: #00B7FF;
 }
 
+.wide_span{
+  width: 50px;
+}
+
+#portfolio_info{
+  display: inline;
+  color:gray;
+  font-size: 38px;
+  float:right;
+  text-align: right;
+  margin-top: -20px;
+}
+
+#property_profit{
+  display: inline;
+  font-size: 42px;
+}
+
+.btn-primary.disabled, .btn-primary:disabled{
+  background-color:gray;
+}
+
+#buy_property_footer {
+    position: fixed;
+    height: 40px;
+    bottom: 32px;
+    width: 100%;
+    color:white;
+    background-color:#ac0b0b;
+    opacity: 0.75;
+    font-size:35px;
+    font-weight: bolder;
+}
+
 #quizheadername {
-  font: 30px "Impact", White, sans-serif;
+  font: 60px "Impact", White, sans-serif;
   color: #FFFFFF;
 }
 
-#quizgamescore{
-  font-size:50px;
+#buy_property_map{
+  height: 300px;
+}
+
+#cash_on_hand_text{
+  font-size: 36px;
+  color: gray;
+  font-weight: bold;
   text-align: center;
+}
+
+#cash_on_hand_amount{
+  display:inline;
+  color: black;
+}
+
+#daily_profit_text{
+  font-size: 40px;
+  color: white;
+  text-align: center;
+}
+
+#daily_profit_value{
+  display:inline;
+  color: white;
+}
+
+#property_price_text{
+  font-size: 36px;
+  color: gray;
+  font-weight: bold;
+  text-align: center;
+  padding-top: 20px;
+}
+
+.center_gray{
+  text-align: center;
+  font-size:32px;
+  font-weight:bold;
+  color: gray;
+}
+
+.center_black{
+  text-align: center;
+  font-size:34px;
+  font-weight:bold;
+  color: black;
+}
+
+#property_price_value{
+  color: black;
+}
+
+#buy_button{
+  font-size: 40px;
+  font-weight: bold;
+}
+
+#percent_to_purchase_text{
+  text-align: center;
+  font-size: 34px;
+  font-weight: bold;
+  padding-top: 25px;
+  padding-bottom: 10px;
+}
+
+#percent_to_purchase_value{
+  text-align: center;
+  font-size: 34px;
+  font-weight: bold;
+  padding-bottom: 10px;
+}
+
+.fa-bars{
+  color: white;
+}
+
+.fa-6x{
+  font-size: 6rem;
+}
+
+.navbar{
+  padding: 0;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+#locationGameMenu{
+  font-size: 60px;
+  text-align: right;
+  z-index: 2000;
+}
+
+#avatar_image{
+  width:100px;
+  height:100px;
+}
+
+#company_value{
+  font-size:50px;
+  font-weight:bold;
+  text-align: center;
+  padding-bottom: 20px;
+}
+
+#next_level_label{
+  text-align: right;
+  color: gray;
+  font-weight: bold;
+  font-size:20px;
+}
+
+#user_level_label{
+color: gray;
+display: inline;
+position: absolute;
+margin-left: 91%;
+}
+
+#main_level_label{
+  font-size: 30px;
+  color: #007bff;
+  text-align: center;
+  font-weight: bold;
+}
+
+.center-block {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+ }
+
+#company_value_label{
+    font-size: 2.5rem;
+    text-align: center;
+    color: gray;
+    font-weight: bold;
+    position: relative;
+    margin-bottom: -10px;
+}
+
+#portfolio_value_label{
+    font-size: 2rem;
+    text-align: left;
+    color: gray;
+    font-weight: bold;
+    position: absolute;
+    margin-top: -35px;
+    padding-left: 10%;
+    padding-bottom: 10px;
+}
+
+#income_label{
+font-size: 30px;
+font-weight: bold;
+color: gray;
+display: inline;
+}
+
+#cashtied_label{
+  text-align: center;
+  font-size: 30px;
+  font-weight: bold;
+  color: gray;
+}
+
+#cashtied_value{
+  text-align: center;
+  font-size: 25px;
+  font-weight: bold;
+  color: black;
+}
+
+#coin_balance_value{
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.card-title{
+  font-weight: bold;
+  color: gray;
+}
+
+.company_slider_text{
+  font-size: 3rem;
+  font-weight: bold;
+  color: #fff;
+  position: absolute;
+  padding-left: 40%;
+}
+
+.company_slider{
+  background-color: #c8c8c8;
+  height: 4rem;
 }
 
 #quizgamestatus{
@@ -23,6 +248,36 @@ a {
 
 #statusChangeDiv{
   display: inline;
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 60px;
+  border-radius: 55px;  
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%; 
+  background: #4CAF50;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
 }
 
 #timerDiv{
@@ -96,8 +351,52 @@ a {
   display:none;
 }
 
+.dropdown-menu{
+  min-width: 33rem;
+}
+
 .dropdown-left{
-  left:-140px;
+  left:-440px;
+}
+
+.dropdown-item{
+  padding-top: 10px;
+  display:inline;
+}
+
+.list-group-item{
+  padding: 1.75rem 1.25rem;
+  font-size: 50px;
+  font-weight: bold;
+  border-radius: .50rem;
+}
+
+.buy_info{
+  display: inline;
+  outline: 2px solid black;
+  border-radius: 20px;
+  text-align: center;
+  font-size: 26px;
+  font: 26px "Impact", grey, sans-serif;
+  color: gray; 
+} 
+
+.buy_info_num{
+  font-weight: bold;
+  font-size: 28px;
+  color:black;
+}
+
+.badge{
+  background-color: gray;
+  color: white;
+  font-size:22px;
+  font-weight: bold;
+  float: right;
+}
+
+#largebadge{
+  width: 100%;
 }
 
 .col-centered{

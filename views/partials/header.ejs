@@ -13,7 +13,11 @@
       photo = locals.user.google.photo;
     }else if(locals.user.local.email != null){
       name = locals.user.local.email;
-      photo = "images/signedout.png";
+      if(locals.user.local.avatar != null){
+        photo = local.user.local.avatar;
+      }else{
+        photo = "images/signedout.png";
+      }
     }
   }
  %>
@@ -21,7 +25,7 @@
 
 
 <nav class="navbar navbar-expand navbar-dark bg-primary">
-  <a class="navbar-brand abs" id="quizheadername" href="/">Quiz Game</a>
+  <a class="navbar-brand abs" id="quizheadername" href="/console"><%= title %></a>
   
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsingNavbar">
     <span class="navbar-toggler-icon"></span>
@@ -29,11 +33,6 @@
 
   <div class="navbar-collapse collapse" id="collapsingNavbar">
     <ul class="navbar-nav">
-    <% if(locals.user){ %>
-      <li class="nav-item">
-        <a class="nav-link nav-big" href="/lobby">Multiplayer</a>
-      </li>
-    <% } %>
       <li class="nav-item">
         <a class="nav-link" href=""></a>
       </li>
@@ -42,32 +41,38 @@
         <a class="nav-link" href="#myAlert" data-toggle="collapse"></a>
       </li>
     </ul>
-
     <ul class="navbar-nav ml-auto">
       <li class="nav-item">
-        <!-- <a class="nav-link" href="/scoreboard" data-target="#myModal" data-toggle="modal">Scoreboard</a> -->
-        <a class="nav-link nav-big" href="/scoreboard">Scoreboard</a>
+       <!-- <a class="nav-link nav-big" href="/scoreboard">Scoreboard</a>-->
       </li>
     </ul>
+    
 
 <% if(locals.user){ %>
     <div class="dropdown">
-      <button class="dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <img src="<%= photo %>" height="60px" width="60px"><span class="caret"></span></img>
-      </button>
+  
+     <button class="dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="fa fa-bars fa-6x"></span>
+      </button> 
 
-      <ul class="dropdown-menu dropdown-left" aria-labelledby="dropdownMenuButton">
-        <a class="dropdown-item">Signed in as <b> <%= name %></b></a>
+
+      <ul class="dropdown-menu dropdown-left" id="locationGameMenu"  aria-labelledby="dropdownMenuButton">
         <div class="dropdown-divider"></div>
-        <a class="dropdown-item" href="/">Game</a>
-        <a class="dropdown-item" href="/lobby">Multiplayer</a>
-        <a class="dropdown-item" href="/scoreboard">Scoreboard</a>
-        <a class="dropdown-item" href="/profile">Your Profile</a>
+        <a class="dropdown-item" href="/console">Console</a><span class="fa fa-dashboard"></span>
+        <hr />
+        <a class="dropdown-item" href="/buyproperties">Buy Properties</a><span class="fa fa-building"></span>
+        <hr />
+        <a class="dropdown-item" href="/portfolio">Portfolio</a><span class="fa fa-briefcase"></span>
+        <hr />
+        <a class="dropdown-item" href="/scoreboard">Scoreboard</a><span class="fa fa-group"></span>
+        <hr />
+        <a class="dropdown-item" href="/profile">Your Profile</a><span class="fa fa-gear"></span>
+        <hr />
         <% if(locals.user.permissions.admin){ %>
-        <a class="dropdown-item" href="/admin">Admin</a>
+        <a class="dropdown-item" href="/admin">Admin</a><span class="fa fa-wrench"></span>
         <% } %>
         <div class="dropdown-divider"></div>
-        <a class="dropdown-item" href="/logout">Logout</a>
+        <a class="dropdown-item" href="/logout">Logout</a><span class="fa fa-circle"></span>
       </ul>
     </div>
 
@@ -75,14 +80,14 @@
 
 
     <div class="dropdown">
-      <button class="dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <img src="/images/signedout.png" height="60px" width="60px"><span class="caret"></span></img>
-      </button>
+     <button class="dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="fa fa-bars fa-6x"></span>
+      </button> 
 
-      <ul class="dropdown-menu dropdown-left" aria-labelledby="dropdownMenuButton">
-        <a class="dropdown-item" href="/login">Login</a>
+      <ul class="dropdown-menu dropdown-left" id="locationGameMenu" aria-labelledby="dropdownMenuButton">
+        <a class="dropdown-item" href="/login">Login</a><span class="fa fa-circle-thin"></span>
         <div class="dropdown-divider"></div>
-        <a class="dropdown-item" href="/scoreboard">Scoreboard</a>
+        <a class="dropdown-item" href="/scoreboard">Scoreboard</a><span class="fa fa-group"></span>
       </ul>
     </div>
 

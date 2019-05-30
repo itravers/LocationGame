@@ -78,20 +78,20 @@ Quiz Game is a npm/node.js application that uses the [express.js](https://expres
 
 
 ==================================================================
-`````` -LINECOUNT-
+````````` -LINECOUNT-
       44 text files.
 classified 44 files      44 unique files.                              
-    4204 files ignored.
+    4254 files ignored.
 
-http://cloc.sourceforge.net v 1.60  T=0.11 s (337.8 files/s, 44193.0 lines/s)
+http://cloc.sourceforge.net v 1.60  T=0.13 s (295.5 files/s, 38973.0 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Javascript                      19            497            622           2102
+Javascript                      19            497            638           2117
 EJS                             17            194              9           1330
-CSS                              1             37              4            170
+CSS                              1             40              4            176
 Bourne Shell                     1              1              0              5
 -------------------------------------------------------------------------------
-SUM:                            38            729            635           3607
+SUM:                            38            732            651           3628
 -------------------------------------------------------------------------------
 ```
