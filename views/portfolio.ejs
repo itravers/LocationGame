@@ -49,14 +49,15 @@
 
 <div class="container col-sm-12">
   <div class="row border">
-    <div class="col-sm-3 buy_info">
+    <div class="col-sm-6 buy_info">
       <div>Total Properties Owned</div>
       <div class="buy_info_num"><%= user.property.total_properties %></div>
     </div>
-    <div class="col-sm-3 buy_info">
+    <div class="col-sm-6 buy_info">
       <div>Maximum Properties</div>
       <div class="buy_info_num"><%= user.property.max_properties %></div>
     </div>
+ <!--
     <div class="col-sm-3 buy_info">
       <div>Properties Pending</div>
       <div class="buy_info_num"><%= user.property.total_pending %></div>
@@ -65,6 +66,7 @@
       <div>Maximum Pending</div>
       <div class="buy_info_num"><%= user.property.max_pending %></div>
     </div>
+-->
   </div>
   <ul class="list-group">
     <% for(var i = 0; i < results.length; i++){ %>

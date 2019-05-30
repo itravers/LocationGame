@@ -16,6 +16,8 @@
 <%
   //info here
   var cash_on_hand = user.cash_on_hand;
+  var totalProperties = user.property.total_properties;
+  var maxProperties = user.property.max_properties;
   var cash_on_hand_text = convertToMoney(cash_on_hand);
 
   var property_cost = results.property_cost;
@@ -33,6 +35,15 @@
     affordable = false;
     current_property_cost = property_cost_per_share;
   }
+
+  var already_own = already_own;
+  var lessThanMaxProperties = false;
+  if(totalProperties >= maxProperties){
+    lessThanMaxProperties = false;
+  }else{
+    lessThanMaxProperties = true;
+  }
+  
 
   var daily_income = (current_property_cost * .1001) * 60;
   var daily_cost   = (current_property_cost * .1) * 60;
@@ -66,6 +77,8 @@
   </div>
   <%if(shares_available <= 0){ %> 
     <div id="percent_to_purchase_text">This Property isn't Available</div>
+  <% }else if(!lessThanMaxProperties && !already_own){ %>
+    <div id="percent_to_purchase_text">You Already Own Maximum Properties!</div> 
   <% }else if(affordable){ %>
     <div><button type="button" class="btn btn-primary btn-lg center-block" id="buy_button" onclick="clickBuy()">BUY</button></div>
     <div id="percent_to_purchase_text">Percent To Purchase:</div>

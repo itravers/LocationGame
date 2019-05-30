@@ -131,10 +131,23 @@ module.exports = function(app, passport){
     if(req.user){
       Cities.findOne({_id: new ObjectId(propertyid)}, {}, function(err, results){
         if(err) throw err;
+        
+        var already_own = false;
+        for(var i = 0; i < results.owners.length; i++){
+          //see if user id is == to owner.id
+          if(results.owners[i].owner_id == req.user._id){
+            //we already own a share, let just add to it
+            //results.owners[i].percent_owned += shares;
+            already_own = true;
+            break;
+          }
+        }
+
         results.property_cost = calculateCityValue(results);
         res.render('viewproperty.ejs', {
           title : "View " + results.city_name,
           user  : req.user,
+          already_own : already_own,
           results : results
         });
       });
@@ -271,16 +284,37 @@ module.exports = function(app, passport){
           var price_per_share = city_value / 100;
           var purchase_price = price_per_share * shares;
           var cash_on_hand = req.user.cash_on_hand;
+          var totalPropertiesOwned = req.user.property.total_properties;
+          var maxProperties = req.user.property.max_properties;
+          var totalPending = req.user.property.total_pending;
+          var maxPending = req.user.property.max_pending;
+            
+          //we go through all owers of the property, already own it we
+          //add the amount we've just purchased.
+          var already_own = false;
+          for(var i = 0; i < results.owners.length; i++){
+            //see if user id is == to owner.id
+            if(results.owners[i].owner_id == req.user._id){
+              //we already own a share, let just add to it
+              results.owners[i].percent_owned += shares;
+              already_own = true;
+              break;
+            }
+          }
+
           if(results.percent_owned + shares > 100){
               res.send({status: "error", message: "That many shares not available"});
               console.log("error That many shares not available");
+          }else if(totalPropertiesOwned >= maxProperties && already_own == false){
+            res.send({status: "error", message: "Cannot Exceed Maximum Properties!"});
+            console.log("error purchasing, cannot exceed maximum properties!");
           }else if(purchase_price <= cash_on_hand){
             //first we create a new owner record in the property that is bought
             var newOwner = {
               owner_id  : req.user._id,
               percent_owned : shares
             };
-
+/*
             //we go through all owers of the property, already own it we
             //add the amount we've just purchased.
             var already_own = false;
@@ -293,6 +327,7 @@ module.exports = function(app, passport){
                 break;
               }
             }
+*/
             //if we don't already own it, we save the newOwner record
             if(!already_own){
               results.owners.push(newOwner);
