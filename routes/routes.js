@@ -437,7 +437,8 @@ module.exports = function(app, passport){
   });
 
   app.get('/scoreboard', function(req, res, done){
-    Users.find({}, {}, ).exec(function(err, results){
+    var sortMethod = {portfolio_value: -1};
+    Users.find({}, {}, ).sort(sortMethod).exec(function(err, results){
       if(err) throw err;
 
       res.render('scoreboard.ejs',{
