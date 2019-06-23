@@ -15,6 +15,7 @@
 
 <%
   //info here
+  var userID = user._id;
   var cash_on_hand = user.cash_on_hand;
   var totalProperties = user.property.total_properties;
   var maxProperties = user.property.max_properties;
@@ -174,7 +175,7 @@
               alert("Error: " + data.message);
             }else if(data.status == "success"){
               //alert("Success: " + data.message);
-              window.location.replace("/portfolio");
+              window.location.replace("/portfolio/<%= userID %>");
             }
           },
           error: function(err){
