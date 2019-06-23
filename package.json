@@ -1,6 +1,6 @@
 {
   "name": "locationgame",
-  "version": "2.0.4.a",
+  "version": "2.0.5",
   "private": true,
   "scripts": {
     "start": "node ./bin/www"
