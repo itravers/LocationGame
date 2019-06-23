@@ -82,11 +82,40 @@ module.exports = function(app, passport){
       res.render('console.ejs', {
         title : "Console",
         user : req.user,
+        userR : null,
         ticks: ticks
       });
     }else{
       res.redirect('/login');
     }
+  });
+
+  //this is the main user console
+  app.get('/console/:userID', function(req, res){
+    var userID = req.params.userID;
+    //userID = "5c3935102355ad18bf0504c7";
+    console.log("userID: " + userID);
+    console.log("req.user.: " + userID);
+    Users.findOne({_id: new ObjectId(userID)}, {}, function(err, userR){
+    
+      if(req.user){
+        if(userR){
+          userR.company_value = userR.portfolio_value + userR.cash_on_hand + userR.cash_tied_up;
+          userR.level = calculateLevel(userR.portfolio_value);
+          userR.portfolio_next_value = calculateNextPortfolioValue(userR.level);
+          userR.cash_on_hand_limit = calculateCashOnHandLimit(userR.level);
+          userR.save();
+          res.render('console.ejs', {
+            title : "Console",
+            user : req.user,
+            userR : userR, //The user who's information we are looking up in the console.
+            ticks: ticks
+          });
+        }
+      }else{
+        res.redirect('/login');
+      }
+    });
   });
 
   //The buy properties page, user can see all local properties
@@ -475,6 +504,8 @@ module.exports = function(app, passport){
     var sortMethod = {portfolio_value: -1};
     Users.find({}, {}, ).sort(sortMethod).exec(function(err, results){
       if(err) throw err;
+      
+      //console.log(results[0]);
 
       res.render('scoreboard.ejs',{
         title: "Scoreboard",
