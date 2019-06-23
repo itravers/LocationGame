@@ -1,7 +1,9 @@
  <%
     var name = 'Unknown';
     var photo = "images/signedout.png";
+    var userID;
   if(locals.user){
+    userID = locals.user._id;
     if(locals.user.facebook.name != null){
       name = locals.user.facebook.name;
       photo = locals.user.facebook.photo;
@@ -62,7 +64,7 @@
         <hr />
         <a class="dropdown-item" href="/buyproperties">Buy Properties</a><span class="fa fa-building"></span>
         <hr />
-        <a class="dropdown-item" href="/portfolio">Portfolio</a><span class="fa fa-briefcase"></span>
+        <a class="dropdown-item" href="/portfolio/<%= userID %>">Portfolio</a><span class="fa fa-briefcase"></span>
         <hr />
         <a class="dropdown-item" href="/scoreboard">Scoreboard</a><span class="fa fa-group"></span>
         <hr />

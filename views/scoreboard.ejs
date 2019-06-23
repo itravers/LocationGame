@@ -26,6 +26,7 @@
   <thead>
     <tr>
       <th>Place</th>
+      <th>Level</th>
       <th>Username</th>
       <th>Picture</th>
       <th>Portfolio Value</th>
@@ -35,7 +36,8 @@
 
     <% for(var i =0; i < results.length; i++){ %>
     <%
-
+      var userID = results[i]._id;
+      var level = results[i].level;
       var portfolio_value = results[i].portfolio_value;
       var decimals = 3;
       if(portfolio_value < 1000) decimals = 0;
@@ -81,9 +83,10 @@
     %>
       <tr class="<%= ismeclass %>">
         <th scope="row"><%=i+1%></th>
-        <td><%= companyname %></td> 
+        <th scope="row"><%=level%></th>
+        <td><a href="/console/<%= userID %>"><%= companyname %></a></td> 
         <td><img src="<%= photo %>" height="30px" width="30px"></img></td> 
-        <td><%= portfolio_value %></td> 
+        <td><a href="/portfolio/<%=userID %>"><%= portfolio_value %></a></td> 
       </tr>
     <% } %>
   

@@ -11,45 +11,46 @@
 <%
   var ticks = ticks;
   console.log("ticks: " + ticks);
-  var company_value = user.company_value;
-  console.log("companyvaluefront: " + company_value);
+  if(userR == null) userR = user;
+  var company_value = userR.company_value;
+  //console.log("companyvaluefront: " + company_value);
   company_value = convertToMoney(company_value); 
  
-  var portfolio_value = user.portfolio_value;
+  var portfolio_value = userR.portfolio_value;
   portfolio_value = convertToMoney(portfolio_value);
   
-  var cash_on_hand = user.cash_on_hand;
+  var cash_on_hand = userR.cash_on_hand;
   cash_on_hand = convertToMoney(cash_on_hand);
   
-  var cash_tied_up = user.cash_tied_up;
+  var cash_tied_up = userR.cash_tied_up;
   cash_tied_up = convertToMoney(cash_tied_up);
   
-  var income_last_day = user.income.last_day;
+  var income_last_day = userR.income.last_day;
   income_last_day = convertToMoney(income_last_day);
   
-  var income_last_week = user.income.last_week;
+  var income_last_week = userR.income.last_week;
   income_last_week = convertToMoney(income_last_week);
   
-  var income_last_month = user.income.last_month;
+  var income_last_month = userR.income.last_month;
   income_last_month = convertToMoney(income_last_month);
   
-  var income_last_year = user.income.last_year;
+  var income_last_year = userR.income.last_year;
   income_last_year = convertToMoney(income_last_year);
 
-  var portfolio_next_value = user.portfolio_next_value;
+  var portfolio_next_value = userR.portfolio_next_value;
   portfolio_next_value = convertToMoney(portfolio_next_value);
   //console.log(portfolio_next_value);
 
    
-  var cash_on_hand_limit = user.cash_on_hand_limit;
+  var cash_on_hand_limit = userR.cash_on_hand_limit;
   cash_on_hand_limit = convertToMoney(cash_on_hand_limit);
   
-  var portfolio_pct = (user.portfolio_value / user.portfolio_next_value) * 100;
-  var cash_on_hand_pct = (user.cash_on_hand / user.cash_on_hand_limit) * 100;  
+  var portfolio_pct = (userR.portfolio_value / userR.portfolio_next_value) * 100;
+  var cash_on_hand_pct = (userR.cash_on_hand / userR.cash_on_hand_limit) * 100;  
 
-  var level = user.level;
-  var company_name = user.company_name;
-  var groupies = user.groupies;  
+  var level = userR.level;
+  var company_name = userR.company_name;
+  var groupies = userR.groupies;  
 
   function convertToMoney(number){
     if(number ==0) return "$0.00";
@@ -65,7 +66,7 @@
 <div class="container col-sm-12">
 
   <div class="container" id="main_level_label">Level <%= level %></div>
-  <img src="images/signedout.png" class="center-block img-responsive" id="avatar_image"/>
+  <img src="/images/signedout.png" class="center-block img-responsive" id="avatar_image"/>
   <div class="container" id="main_level_label"><%= company_name %></div>
   <br>
   <div class="container" id="company_value_label">

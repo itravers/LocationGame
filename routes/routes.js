@@ -73,6 +73,8 @@ module.exports = function(app, passport){
 
   //this is the main user console
   app.get('/console', function(req, res){
+    console.log("called /console");
+    console.log("req.user: " + req.user);
     if(req.user){
       req.user.company_value = req.user.portfolio_value + req.user.cash_on_hand + req.user.cash_tied_up;
       req.user.level = calculateLevel(req.user.portfolio_value);
@@ -82,11 +84,40 @@ module.exports = function(app, passport){
       res.render('console.ejs', {
         title : "Console",
         user : req.user,
+        userR : null,
         ticks: ticks
       });
     }else{
       res.redirect('/login');
     }
+  });
+
+  //this is the main user console
+  app.get('/console/:userID', function(req, res){
+    var userID = req.params.userID;
+    //userID = "5c3935102355ad18bf0504c7";
+    console.log("userID: " + userID);
+    console.log("req.user.: " + userID);
+    Users.findOne({_id: new ObjectId(userID)}, {}, function(err, userR){
+    
+      if(req.user){
+        if(userR){
+          userR.company_value = userR.portfolio_value + userR.cash_on_hand + userR.cash_tied_up;
+          userR.level = calculateLevel(userR.portfolio_value);
+          userR.portfolio_next_value = calculateNextPortfolioValue(userR.level);
+          userR.cash_on_hand_limit = calculateCashOnHandLimit(userR.level);
+          userR.save();
+          res.render('console.ejs', {
+            title : "Console",
+            user : req.user,
+            userR : userR, //The user who's information we are looking up in the console.
+            ticks: ticks
+          });
+        }
+      }else{
+        res.redirect('/login');
+      }
+    });
   });
 
   //The buy properties page, user can see all local properties
@@ -383,48 +414,60 @@ module.exports = function(app, passport){
     }
   }); 
 
-  app.get('/portfolio', function(req, res){
+  app.get('/portfolio/:userID', function(req, res){
     var lat = 41.08749;
     var longi = -122.717445;
-    if(req.user){
-      var ids = [];
-      //get id's of properties owned
-      for(var i = 0; i < req.user.property.owned.length; i++){
-        ids.push(req.user.property.owned[i].property_id);
-      }
-      var obj_ids = ids.map(function(id) { return ObjectId(id); });
-      Cities.find({_id: {$in: obj_ids}},{},).exec(function(err, results){
-        var myLoc = {lat: lat, lon: longi};
-        console.log("sorting cities...");
-        results = mergeSort(results, myLoc);
-        console.log("done sorting cities");
 
-        //double loop, matching user.property.owned[j] to results[i]
-        var amountIOwn = [];
-        var totalEarned = [];
-        var propertyCost = [];// = calculateCityValue(results);
-        for(var i = 0; i < results.length; i++){
-          for(var j = 0; j < req.user.property.owned.length; j++){
-            //find a matching propertyid
-            if(results[i]._id == req.user.property.owned[j].property_id){
-              console.log("totalEarned: " + req.user.property.owned[j].total_earned); 
-              amountIOwn.push(req.user.property.owned[j].percent_owned);
-              totalEarned.push(req.user.property.owned[j].total_earned);
-              propertyCost.push(calculateCityValue(results[i]));
-              break;
-            }
-          } 
+    //var userID = "5c3935102355ad18bf0504c7";
+    var userID = req.params.userID;
+    //find userR here
+    
+    if(req.user){
+      Users.findOne({_id: new ObjectId(userID)}, {}, function(err, userR){
+        if(!userR) userR = req.user;
+        var ids = [];
+        //get id's of properties owned
+        for(var i = 0; i < userR.property.owned.length; i++){
+          ids.push(userR.property.owned[i].property_id);
         }
-        console.log("amountIOwn: " + amountIOwn);
-        res.render('portfolio.ejs',{
-          title: "Portfolio",
-          results: results,
-          user: req.user,
-          amountIOwn: amountIOwn,
-          totalEarned: totalEarned,
-          propertyCost: propertyCost
-        });
+        var obj_ids = ids.map(function(id) { return ObjectId(id); });
+    
+        Cities.find({_id: {$in: obj_ids}},{},).exec(function(err, results){
+          var myLoc = {lat: lat, lon: longi};
+          console.log("sorting cities...");
+          results = mergeSort(results, myLoc);
+          console.log("done sorting cities");
+  
+          //double loop, matching user.property.owned[j] to results[i]
+          var amountIOwn = [];
+          var totalEarned = [];
+          var propertyCost = [];// = calculateCityValue(results);
+          for(var i = 0; i < results.length; i++){
+            for(var j = 0; j < userR.property.owned.length; j++){
+              //find a matching propertyid
+              if(results[i]._id == userR.property.owned[j].property_id){
+                console.log("totalEarned: " + userR.property.owned[j].total_earned); 
+                amountIOwn.push(userR.property.owned[j].percent_owned);
+                totalEarned.push(userR.property.owned[j].total_earned);
+                propertyCost.push(calculateCityValue(results[i]));
+                break;
+              }
+            } 
+          }
+          console.log("amountIOwn: " + amountIOwn);
+          res.render('portfolio.ejs',{
+            title: "Portfolio",
+            results: results,
+             user: req.user,
+             userR: userR,
+             amountIOwn: amountIOwn,
+             totalEarned: totalEarned,
+             propertyCost: propertyCost
+           });
+         });
       });
+     
+
     }else{
       res.redirect('/login');
     }
@@ -475,6 +518,8 @@ module.exports = function(app, passport){
     var sortMethod = {portfolio_value: -1};
     Users.find({}, {}, ).sort(sortMethod).exec(function(err, results){
       if(err) throw err;
+      
+      //console.log(results[0]);
 
       res.render('scoreboard.ejs',{
         title: "Scoreboard",
