@@ -73,6 +73,8 @@ module.exports = function(app, passport){
 
   //this is the main user console
   app.get('/console', function(req, res){
+    console.log("called /console");
+    console.log("req.user: " + req.user);
     if(req.user){
       req.user.company_value = req.user.portfolio_value + req.user.cash_on_hand + req.user.cash_tied_up;
       req.user.level = calculateLevel(req.user.portfolio_value);
@@ -416,15 +418,17 @@ module.exports = function(app, passport){
     var lat = 41.08749;
     var longi = -122.717445;
 
+    //var userID = "5c3935102355ad18bf0504c7";
+    var userID = req.params.userID;
     //find userR here
     
-    Users.findOne({_id: new ObjectId(userID)}, {}, function(err, userR){
-      if(req.user){
+    if(req.user){
+      Users.findOne({_id: new ObjectId(userID)}, {}, function(err, userR){
         if(!userR) userR = req.user;
         var ids = [];
         //get id's of properties owned
-        for(var i = 0; i < req.user.property.owned.length; i++){
-          ids.push(req.user.property.owned[i].property_id);
+        for(var i = 0; i < userR.property.owned.length; i++){
+          ids.push(userR.property.owned[i].property_id);
         }
         var obj_ids = ids.map(function(id) { return ObjectId(id); });
     
@@ -439,12 +443,12 @@ module.exports = function(app, passport){
           var totalEarned = [];
           var propertyCost = [];// = calculateCityValue(results);
           for(var i = 0; i < results.length; i++){
-            for(var j = 0; j < req.user.property.owned.length; j++){
+            for(var j = 0; j < userR.property.owned.length; j++){
               //find a matching propertyid
-              if(results[i]._id == req.user.property.owned[j].property_id){
-                console.log("totalEarned: " + req.user.property.owned[j].total_earned); 
-                amountIOwn.push(req.user.property.owned[j].percent_owned);
-                totalEarned.push(req.user.property.owned[j].total_earned);
+              if(results[i]._id == userR.property.owned[j].property_id){
+                console.log("totalEarned: " + userR.property.owned[j].total_earned); 
+                amountIOwn.push(userR.property.owned[j].percent_owned);
+                totalEarned.push(userR.property.owned[j].total_earned);
                 propertyCost.push(calculateCityValue(results[i]));
                 break;
               }
@@ -455,11 +459,14 @@ module.exports = function(app, passport){
             title: "Portfolio",
             results: results,
              user: req.user,
+             userR: userR,
              amountIOwn: amountIOwn,
              totalEarned: totalEarned,
              propertyCost: propertyCost
            });
          });
+      });
+     
 
     }else{
       res.redirect('/login');

@@ -1,7 +1,9 @@
  <%
     var name = 'Unknown';
     var photo = "images/signedout.png";
+    var userID;
   if(locals.user){
+    userID = locals.user._id;
     if(locals.user.facebook.name != null){
       name = locals.user.facebook.name;
       photo = locals.user.facebook.photo;

@@ -83,7 +83,7 @@
         <th scope="row"><%=i+1%></th>
         <td><a href="/console/<%= userID %>"><%= companyname %></a></td> 
         <td><img src="<%= photo %>" height="30px" width="30px"></img></td> 
-        <td><%= portfolio_value %></td> 
+        <td><a href="/portfolio/<%=userID %>"><%= portfolio_value %></a></td> 
       </tr>
     <% } %>
   
