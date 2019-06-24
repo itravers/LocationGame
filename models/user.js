@@ -58,8 +58,8 @@ var userSchema = mongoose.Schema({
     cash_tied_up     : {type: Number, default: 0},
     level            : {type: Number, default: 0},
     groupies         : {type: Number, default: 0},
-    company_name     : {type: String, default: "Default Name"}
-
+    company_name     : {type: String, default: "Default Name"},
+    last_online      : {type: Date, default: Date.now}
 
 });
 

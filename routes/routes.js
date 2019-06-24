@@ -76,6 +76,9 @@ module.exports = function(app, passport){
     //console.log("called /console");
     //console.log("req.user: " + req.user);
     if(req.user){
+      var datetime = new Date();
+      console.log(datetime);
+      req.user.last_online = datetime;
       req.user.company_value = req.user.portfolio_value + req.user.cash_on_hand + req.user.cash_tied_up;
       req.user.level = calculateLevel(req.user.portfolio_value);
       req.user.portfolio_next_value = calculateNextPortfolioValue(req.user.level);
@@ -94,6 +97,8 @@ module.exports = function(app, passport){
 
   //this is the console where you can view anyone's console.
   app.get('/console/:userID', function(req, res){
+  
+  
     var userID = req.params.userID;
     //userID = "5c3935102355ad18bf0504c7";
     //console.log("userID: " + userID);
@@ -154,6 +159,9 @@ module.exports = function(app, passport){
           }
         }      
 
+        //reverse citiesOwned
+        citiesOwned.reverse();
+  
         //remove all cities from filteredResults that we own
         var filteredResults = results.filter(function(value, index, arr){
           if(!citiesOwned.includes(value)){
@@ -540,6 +548,7 @@ module.exports = function(app, passport){
   });
 
   app.get('/scoreboard', function(req, res, done){
+    var dateTime = new Date();
     var sortMethod = {portfolio_value: -1};
     Users.find({}, {}, ).sort(sortMethod).exec(function(err, results){
       if(err) throw err;
@@ -549,7 +558,8 @@ module.exports = function(app, passport){
       res.render('scoreboard.ejs',{
         title: "Scoreboard",
         results: results,
-        user: req.user
+        user: req.user,
+        dateTime: dateTime
       });
     });
   });
