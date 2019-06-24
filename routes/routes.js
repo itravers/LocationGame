@@ -73,9 +73,12 @@ module.exports = function(app, passport){
 
   //this is the main user console
   app.get('/console', function(req, res){
-    console.log("called /console");
-    console.log("req.user: " + req.user);
+    //console.log("called /console");
+    //console.log("req.user: " + req.user);
     if(req.user){
+      var datetime = new Date();
+      console.log(datetime);
+      req.user.last_online = datetime;
       req.user.company_value = req.user.portfolio_value + req.user.cash_on_hand + req.user.cash_tied_up;
       req.user.level = calculateLevel(req.user.portfolio_value);
       req.user.portfolio_next_value = calculateNextPortfolioValue(req.user.level);
@@ -92,12 +95,14 @@ module.exports = function(app, passport){
     }
   });
 
-  //this is the main user console
+  //this is the console where you can view anyone's console.
   app.get('/console/:userID', function(req, res){
+  
+  
     var userID = req.params.userID;
     //userID = "5c3935102355ad18bf0504c7";
-    console.log("userID: " + userID);
-    console.log("req.user.: " + userID);
+    //console.log("userID: " + userID);
+    //console.log("req.user.: " + userID);
     Users.findOne({_id: new ObjectId(userID)}, {}, function(err, userR){
     
       if(req.user){
@@ -142,11 +147,39 @@ module.exports = function(app, passport){
         results.length = 300;
         for(var i = 0; i < results.length; i++){ 
           results[i].property_cost = calculateCityValue(results[i]);
-        }  
+        } 
+
+        //loop through all the cities in results, checking if we already own it
+        //if we do own the city we will put it aside and then add it to the front 
+        //of results after we are done
+        var citiesOwned = new Array();
+        for(var i = 0; i < results.length; i++){
+          if(doesUserOwnCity(req.user, results[i])){
+            citiesOwned.push(results[i]);
+          }
+        }      
+
+        //reverse citiesOwned
+        citiesOwned.reverse();
+  
+        //remove all cities from filteredResults that we own
+        var filteredResults = results.filter(function(value, index, arr){
+          if(!citiesOwned.includes(value)){
+            return true;
+          }
+        });
+
+        //add all cities we own to the front of filtered results
+        for(var i = 0; i < citiesOwned.length; i++){
+          filteredResults.unshift(citiesOwned[i]);
+        }
+
+//        console.log("cities owned: " + citiesOwned);
+ 
         res.render('buyproperties.ejs', {
           title : "Buy Properties",
           user  : req.user,
-          results : results
+          results : filteredResults
         });
 
       });
@@ -515,6 +548,7 @@ module.exports = function(app, passport){
   });
 
   app.get('/scoreboard', function(req, res, done){
+    var dateTime = new Date();
     var sortMethod = {portfolio_value: -1};
     Users.find({}, {}, ).sort(sortMethod).exec(function(err, results){
       if(err) throw err;
@@ -524,7 +558,8 @@ module.exports = function(app, passport){
       res.render('scoreboard.ejs',{
         title: "Scoreboard",
         results: results,
-        user: req.user
+        user: req.user,
+        dateTime: dateTime
       });
     });
   });
@@ -1140,6 +1175,19 @@ function distanceFunction(distance){
   //returnVal = (-.001 * (distance*6372.8)) + 50;
   returnVal = (-1/220) * (distance * 6372.8) + 50;
   //console.log("distance: " + (distance*6372.8) + "  multiplier: " + returnVal);
+  return returnVal;
+}
+
+function doesUserOwnCity(user, city){
+  var returnVal = false;
+  for(var i = 0; i < user.property.owned.length; i++){
+    if(user.property.owned[i].property_id == city._id){
+      returnVal = true;
+      break;
+    }
+  }
+  //console.log("user.property.owned: " + user.property.owned );
+  console.log("does user own city: " + returnVal);
   return returnVal;
 }
 
