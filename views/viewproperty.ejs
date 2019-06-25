@@ -138,7 +138,10 @@
 
   <% } %>
 
-
+<br>
+    <div id="buy_or_sell_button">
+      <button type="button" class="btn btn-primary btn-lg center-block" id="viewOwnersButton" onclick="viewOwners()">View All Owners</button>
+    </div>
 </div>
 
   <div class="container col-sm-12" id="buy_property_footer">  
@@ -322,6 +325,11 @@
           buttonDisabled = false;
         }
       }
+  }
+
+  //user clicked viewOwners button, redirect user to viewowners
+  function viewOwners(){
+      window.location.href = "/viewowners/<%= results._id %>";
   }
 
   function calculateNewSliderValue(){

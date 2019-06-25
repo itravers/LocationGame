@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+  <% include partials/head %>
+  <style>
+        body        { word-wrap:break-word; }
+  </style>
+  <script>
+    //don't penalize if user came to this page
+    sessionStorage.removeItem("not_answered");
+  </script>
+
+</head>
+<body>
+<header>
+  <% include partials/header %>
+</header>
+
+<%
+  var totalOwned = total_owned;
+%>
+
+<div class="container col-sm-12">
+
+    <div class="page-header text-center">
+        <h1><span class="fa fa-diamond"></span> Total Owned: <%= totalOwned %>%</h1>
+    </div>
+
+  <table class="table table-hover">
+  <thead>
+    <tr>
+      <th>Company Name</th>
+      <th>Percent Owned</th>
+      <th>Total Earned</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <% for(var i =0; i < owners.length; i++){ %>
+    <%
+      
+      var isme = false;
+      if(owners[i]._id == user._id){
+        isme = true;
+      }
+
+      
+      var ismeclass = "";
+      
+      if(isme)
+        var ismeclass = "table-success";
+     
+      var company_name = owners[i].company_name;
+      var percent_owned = owners[i].percent_owned;
+      var total_earned = owners[i].total_earned;
+      var owner_id = owners[i]._id;
+   
+      function convertToMoney(number){
+        if(number ==0) return "$0.00";
+        var decimals = 3;
+        if(number < 1000) decimals = 0;
+        var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        money = (money).substring(0, money.length - decimals);
+        money = "$"+money;
+        return money;
+      }
+
+    %>
+      <tr class="<%= ismeclass %>">
+        <td><a href="/console/<%= owner_id %>"><%= company_name %></a></td> 
+        <td><%= percent_owned %>%</td> 
+        <td><a href="/portfolio/<%=owner_id %>"><%= convertToMoney(total_earned) %></a></td> 
+      </tr>
+    <% } %>
+  
+  </tbody>
+</table>
+
+
+</div>
+
+<footer>
+    <% include partials/footer %>
+  </footer>
+
+</body>
+</html>

@@ -193,6 +193,77 @@ module.exports = function(app, passport){
     }
   });
 
+  //view a list of property owners, with how much they own
+  //of each property
+  app.get('/viewowners/:propertyid', function(req, res){
+    var propertyid = req.params.propertyid;
+    if(req.user){//user is logged in
+      
+      Cities.findOne({_id: new ObjectId(propertyid)}, {}, function(err, city){
+      //unfortunately we store all property ownership info
+      //in the users database under user.property.owned
+      //which is an array with each item being 
+      //a property with percent_owned, property_id, total_earned
+      //we need to query all users, loop through them,
+      //in an inner loop we loop through all properties owned & comp.
+      Users.find({}, {}, ).exec(function(err, users){
+       // console.log(users);
+        var total_owned = 0;
+        var owners = new Array(); //we will build a list of owners
+        //loop through users
+        for(var i = 0; i < users.length; i++){
+          var thisuser = users[i];
+          //loop through each user.property.owned
+          for(var j = 0; j < thisuser.property.owned.length; j++){
+            //compare property id's
+            var property = thisuser.property.owned[j];
+            if(property.property_id == propertyid){
+              var owner = {"_id" : thisuser._id,
+                           "company_name": thisuser.company_name,
+                           "percent_owned": property.percent_owned,
+                           "total_earned" : property.total_earned};
+              owners.push(owner);
+              total_owned += property.percent_owned;
+             // console.log(user.company_name + " owns " + property.percent_owned + "% of property and has earned $" + Math.round(property.total_earned));
+            }
+          }
+        }
+        console.log(owners);
+
+        //render here
+        res.render('viewowners.ejs', {
+                title : city.city_name + " City Owners",
+                city : city,
+                user: req.user,
+                owners: owners,
+                total_owned: total_owned
+        }); 
+      });//end Users.find
+      });//end Cities.find
+
+    }else{//user not logged in
+      res.redirect('/login');
+    }
+  });
+
+
+  app.get('/scoreboard', function(req, res, done){
+    var dateTime = new Date();
+    var sortMethod = {portfolio_value: -1};
+    Users.find({}, {}, ).sort(sortMethod).exec(function(err, results){
+      if(err) throw err;
+      
+      //console.log(results[0]);
+
+      res.render('scoreboard.ejs',{
+        title: "Scoreboard",
+        results: results,
+        user: req.user,
+        dateTime: dateTime
+      });
+    });
+  });
+
   //view a property page, with option to buy it
   app.get('/viewproperty/:propertyid', function(req, res){
     var propertyid = req.params.propertyid;
@@ -553,22 +624,6 @@ module.exports = function(app, passport){
     });
   });
 
-  app.get('/scoreboard', function(req, res, done){
-    var dateTime = new Date();
-    var sortMethod = {portfolio_value: -1};
-    Users.find({}, {}, ).sort(sortMethod).exec(function(err, results){
-      if(err) throw err;
-      
-      //console.log(results[0]);
-
-      res.render('scoreboard.ejs',{
-        title: "Scoreboard",
-        results: results,
-        user: req.user,
-        dateTime: dateTime
-      });
-    });
-  });
 
   //resets the score of the signed in user
   app.get('/resetscore', function(req, res, done){
