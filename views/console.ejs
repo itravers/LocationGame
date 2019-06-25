@@ -9,6 +9,7 @@
 </header>
 
 <%
+  var version = version;
   var ticks = ticks;
   console.log("ticks: " + ticks);
   if(userR == null) userR = user;
@@ -198,6 +199,7 @@
   
   <footer>
     <% include partials/footer %><p class="text-center text-muted"><%= ticks %></p>
+    <p class="text-center text-muted">Version: <%= version %> </p>
   </footer>
 
 </body>

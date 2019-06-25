@@ -16,6 +16,8 @@ var ObjectId = (require('mongoose').Types.ObjectId);
 var schedule = require('node-schedule');
 var ticks = 0;
 
+var pjson = require('../package.json');
+
 var j = schedule.scheduleJob('* * * * *', function(){
   var delayTime = 15000;
   timeStep(1);
@@ -88,7 +90,8 @@ module.exports = function(app, passport){
         title : "Console",
         user : req.user,
         userR : null,
-        ticks: ticks
+        ticks: ticks,
+        version: pjson.version
       });
     }else{
       res.redirect('/login');
@@ -116,7 +119,8 @@ module.exports = function(app, passport){
             title : "Console",
             user : req.user,
             userR : userR, //The user who's information we are looking up in the console.
-            ticks: ticks
+            ticks: ticks,
+            version: pjson.version
           });
         }
       }else{
