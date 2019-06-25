@@ -144,9 +144,9 @@ module.exports = function(app, passport){
       
         //now we want to sort results based on location
         var myLoc = {lat: lat, lon: longi};
-        console.log("sorting cities...");
+        //console.log("sorting cities...");
         results = mergeSort(results, myLoc);
-        console.log("done sorting cities");
+        //console.log("done sorting cities");
         //limit the length of the results, this will be a skill
         results.length = 300;
         for(var i = 0; i < results.length; i++){ 
@@ -260,8 +260,8 @@ module.exports = function(app, passport){
       }
     }
    
-    console.log("sharesOwned:  " + sharesOwned);
-    console.log("sharesToSell: " + sharesToSell);
+    //console.log("sharesOwned:  " + sharesOwned);
+    //console.log("sharesToSell: " + sharesToSell);
  
     if(!req.user){ //make sure user is signed in
       //user is not signed in, send error
@@ -276,7 +276,7 @@ module.exports = function(app, passport){
           return;
         }
         
-        console.log(" premodify req.user.property.owned " + req.user.property.owned);      
+        //console.log(" premodify req.user.property.owned " + req.user.property.owned);      
 
         //1. modify user
         //loop through user.property.owned and remove any matches
@@ -473,9 +473,9 @@ module.exports = function(app, passport){
     
         Cities.find({_id: {$in: obj_ids}},{},).exec(function(err, results){
           var myLoc = {lat: lat, lon: longi};
-          console.log("sorting cities...");
+          //console.log("sorting cities...");
           results = mergeSort(results, myLoc);
-          console.log("done sorting cities");
+          //console.log("done sorting cities");
   
           //double loop, matching user.property.owned[j] to results[i]
           var amountIOwn = [];
@@ -485,7 +485,7 @@ module.exports = function(app, passport){
             for(var j = 0; j < userR.property.owned.length; j++){
               //find a matching propertyid
               if(results[i]._id == userR.property.owned[j].property_id){
-                console.log("totalEarned: " + userR.property.owned[j].total_earned); 
+                //console.log("totalEarned: " + userR.property.owned[j].total_earned); 
                 amountIOwn.push(userR.property.owned[j].percent_owned);
                 totalEarned.push(userR.property.owned[j].total_earned);
                 propertyCost.push(calculateCityValue(results[i]));
@@ -493,7 +493,7 @@ module.exports = function(app, passport){
               }
             } 
           }
-          console.log("amountIOwn: " + amountIOwn);
+          //console.log("amountIOwn: " + amountIOwn);
           res.render('portfolio.ejs',{
             title: "Portfolio",
             results: results,
@@ -632,7 +632,7 @@ module.exports = function(app, passport){
     newProblem.problem = problem;
     newProblem.questionType = questionType;
     
-    console.log("reporting problem: " + newProblem); 
+    //console.log("reporting problem: " + newProblem); 
  
     //save the new problem
     newProblem.save();
@@ -975,7 +975,7 @@ function swap(results, firstIndex, secondIndex){
 }
 
 function selectionSort(results, myLoc){
-  console.log("sorting...");
+  //console.log("sorting...");
   var len = results.length;
   var min;
 
@@ -1257,7 +1257,7 @@ function timeStep(numSteps, currentStep = 0){
                   }else{
                     var diff = cashLimit - cashOnHand;
                     if(diff > 0){
-                      console.log("Adding limited cash: " + diff);
+                      //console.log("Adding limited cash: " + diff);
                       allusers[i].property.owned[j].total_earned += diff;
                       allusers[i].cash_on_hand += diff;
                     }
