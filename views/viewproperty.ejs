@@ -15,6 +15,7 @@
 
 <%
   //info here
+  var buyTrueSellFalse = buyTrueSellFalse;
   var userID = user._id;
   var cash_on_hand = user.cash_on_hand;
   var totalProperties = user.property.total_properties;
@@ -36,7 +37,6 @@
     affordable = false;
     current_property_cost = property_cost_per_share;
   }
-
   var already_own = already_own;
   var lessThanMaxProperties = false;
   if(totalProperties >= maxProperties){
@@ -45,6 +45,21 @@
     lessThanMaxProperties = true;
   }
   
+    //calculate shares available
+    var shares_owned = 0;
+    //loop through user.owned to see if we own this property_id and how man shares we might own
+    for(var i = 0; i < user.property.owned.length; i++){
+      if(user.property.owned[i].property_id == results._id){
+        shares_owned = user.property.owned[i].percent_owned;
+      }
+    }
+  if(!buyTrueSellFalse){
+    shares_available = shares_owned;
+    initial_selection = shares_available / 2;
+    shares = initial_selection;
+    current_property_cost = property_cost_per_share * shares;
+    affordable = false; 
+  }
 
   var daily_income = (current_property_cost * .1001) * 60;
   var daily_cost   = (current_property_cost * .1) * 60;
@@ -67,7 +82,18 @@
   <div id="buy_property_map"></div>
   <div id="cash_on_hand_text">Cash Available: <b><div id="cash_on_hand_amount"><%= cash_on_hand_text %></div></b></div>
   <hr/>
-  <div id="property_price_text">Price<b><div id="property_price_value"><%= convertToMoney(current_property_cost) %></div></b></div>
+  <div id="property_price_text">
+    <div id="buy_or_sell_button">
+      <button type="button" class="btn btn-primary btn-lg" id="toggleBuy" onclick="toggleBuySell()">BUY</button>
+    </div>
+    Price
+    <div id="buy_or_sell_button">
+      <button type="button" class="btn btn-primary btn-lg" id="toggleSell" onclick="toggleBuySell()">SELL</button>
+    </div>
+
+    <b><div id="property_price_value"><%= convertToMoney(current_property_cost) %></div></b>
+
+  </div>
   <div class="row">
     <div class="col-sm-6 center_gray">Hourly Income</div>
     <div class="col-sm-6 center_gray">Hourly Cost</div>
@@ -76,20 +102,43 @@
     <div class="col-sm-6 center_black" id="daily_income_value"><%= convertToMoney(daily_income) %></div>
     <div class="col-sm-6 center_black" id="daily_cost_value"><%= convertToMoney(daily_cost) %></div>
   </div>
-  <%if(shares_available <= 0){ %> 
+
+  <!-- Start of purchase check -->
+  <%if(shares_available <= 0 && buyTrueSellFalse){ %> 
     <div id="percent_to_purchase_text">This Property isn't Available</div>
-  <% }else if(!lessThanMaxProperties && !already_own){ %>
+  <% }else if(!lessThanMaxProperties && !already_own && buyTrueSellFalse){ %>
     <div id="percent_to_purchase_text">You Already Own Maximum Properties!</div> 
-  <% }else if(affordable){ %>
-    <div><button type="button" class="btn btn-primary btn-lg center-block" id="buy_button" onclick="clickBuy()">BUY</button></div>
-    <div id="percent_to_purchase_text">Percent To Purchase:</div>
+  <% }else if(buyTrueSellFalse){ %>
+    <div>
+      <button type="button" class="btn btn-primary btn-lg center-block" id="buy_button" onclick="clickBuy()">
+        <span id="buy_button_text"> BUY </span>
+      </button>
+    </div>
+    <% if(!affordable){ %>
+      <div id="percent_to_purchase_text" class = "cannotafford">You Cannot Afford This</div>
+    <% } %>
+    <div id="percent_to_purchase_text">Percent To <span>Purchase:</span></div>
     <div id="percent_to_purchase_value"><%= initial_selection %></div>
     <div class="slidecontainer">
       <input type="range" min="1" max="<%= shares_available%>" value="<%= initial_selection %>" class="slider" id="myRange">
     </div>
-  <% }else{ %>
-    <div id="percent_to_purchase_text">You Cannot Afford This</div>
+  <!-- End of purchase check -->
+  <!-- Start of sell check --> 
+  <% }else if(!buyTrueSellFalse){ %>
+    <div>
+      <button type="button" class="btn btn-primary btn-lg center-block" id="buy_button" onclick="clickBuy()">
+        <span id="buy_button_text"> SELL </span>
+      </button>
+    </div>
+    <div id="percent_to_purchase_text">Percent To <span>Sell:</span></div>
+    <div id="percent_to_purchase_value"><%= initial_selection %></div>
+    <div class="slidecontainer">
+      <input type="range" min="1" max="<%= shares_available%>" value="<%= initial_selection %>" class="slider" id="myRange">
+    </div>
+
   <% } %>
+
+
 </div>
 
   <div class="container col-sm-12" id="buy_property_footer">  
@@ -114,7 +163,7 @@
   var slider = document.getElementById("myRange");
   var output = document.getElementById("percent_to_purchase_value");
   output.innerHTML = slider.value + "%"; // Display the default slider value
-
+  var buyTrueSellFalse = <%= buyTrueSellFalse %>; //this is set to true if we are buying, false if we are selling.
 
   var property_cost_per_share = <%= property_cost_per_share %>;
   var current_property_cost = <%= current_property_cost %>;
@@ -133,6 +182,7 @@
     }
   // Update the current slider value (each time you drag the slider handle)
   slider.oninput = function() {
+    //updateSlider();
     output.innerHTML = this.value + "%";
     current_property_cost = property_cost_per_share * this.value;
     daily_income = (current_property_cost * .1001) * 60;
@@ -143,15 +193,21 @@
     $("#daily_cost_value").text(convertToMoney(daily_cost));
     $("#daily_profit_value").text(convertToMoney(daily_profit));
 
+    if(buyTrueSellFalse){ //we are buying
     //grey out buy button if cannot afford
-    if(cash_on_hand < current_property_cost){
-      $("#buy_button").addClass('disabled');    
-      buttonDisabled = true;
-    }else{
-      $("#buy_button").removeClass('disabled');     
-      buttonDisabled = false;
+      if(cash_on_hand < current_property_cost){
+        $("#buy_button").addClass('disabled');    
+        buttonDisabled = true;
+      }else{
+        $("#buy_button").removeClass('disabled');     
+        buttonDisabled = false;
+      }
+    }else{//we are selling
+     //$("#buy_button").removeClass('disabled'); 
     }
+
   }
+
 
   function convertToMoney(number){
     var decimal = 3;
@@ -162,32 +218,165 @@
     return money;
   }
 
+  /*
+    Called if user clicks the buy button, or the sell button
+    we will figure out which state we are in here
+    then we will send whatever request needed to server
+    and we will redirect
+  */
   function clickBuy(){
-    if(!buttonDisabled){
-      if(cash_on_hand > current_property_cost){
-          var propertyid = "<%= results._id %>";
-          var shares = slider.value;
-          $.ajax({
-          type: "GET",
-          url: "/buyproperty/"+propertyid+"/"+shares,
-          success: function(data){
-            if(data.status == "error"){
-              alert("Error: " + data.message);
-            }else if(data.status == "success"){
-              //alert("Success: " + data.message);
-              window.location.replace("/portfolio/<%= userID %>");
+
+    if(buyTrueSellFalse){ //we are buying
+
+      if(!buttonDisabled){
+        if(cash_on_hand > current_property_cost){
+            var propertyid = "<%= results._id %>";
+            var shares = slider.value;
+            $.ajax({
+            type: "GET",
+            url: "/buyproperty/"+propertyid+"/"+shares,
+            success: function(data){
+              if(data.status == "error"){
+                alert("Error: " + data.message);
+              }else if(data.status == "success"){
+                //alert("Success: " + data.message);
+                window.location.replace("/portfolio/<%= userID %>");
+              }
+            },
+            error: function(err){
+              console.log("error submitting problem: " + err);
+              alert(`err: ${JSON.stringify(err, undefined, 2)}`);
             }
-          },
-          error: function(err){
-            console.log("error submitting problem: " + err);
-            alert(`err: ${JSON.stringify(err, undefined, 2)}`);
-          }
-        });
-      }else{
-        alert("elseerror");
+          });
+        }else{
+          alert("elseerror");
+        }
       }
+    }else{ //!buyTrueSellFalse, we are selling
+      
+      var propertyid = "<%= results._id %>";
+      var shares = slider.value;;
+      $.ajax({
+        type: "GET",
+        url: "/sellproperty/"+propertyid+"/"+shares,
+        success: function(data){
+          if(data.status == "error"){
+            alert("Error: " + data.message);
+          }else if(data.status == "success"){
+            //alert("Success: " + data.message);
+            window.location.replace("/portfolio/<%= userID%>");
+          }
+        },
+        error: function(err){
+          console.log("error submitting problem: " + err);
+          alert(`err: ${JSON.stringify(err, undefined, 2)}`);
+        }
+      });
+
+
     }
-  } 
+  }
+  
+  //Toggles the buy or sell function. changes buying or selling
+  function toggleBuySell(){
+    buyTrueSellFalse = !buyTrueSellFalse;
+    refreshBuySell();
+  }
+
+  //refreshes the buy/sell properties of the page
+  function refreshBuySell(){
+    refreshButtonsAndLabels();
+    calculateNewSliderValue();
+  }
+
+  function refreshButtonsAndLabels(){
+    if(buyTrueSellFalse){
+      $("#toggleBuy").addClass('disabled');    
+      $("#toggleSell").removeClass('disabled');    
+      $("#buy_button_text").text("BUY");
+      $("#percent_to_purchase_text span").text("Purchase:");
+    }else{
+      $("#toggleBuy").removeClass('disabled');    
+      $("#toggleSell").addClass('disabled');    
+      $("#buy_button_text").text( "SELL");
+      $("#percent_to_purchase_text span").text("Sell:");
+    }
+      var shares_available = <%= shares_available %>
+      shares_available = <%= shares_owned %>;
+      initial_selection = shares_available / 2;
+      if(!buyTrueSellFalse){
+        if(initial_selection <= shares_available){
+          affordable = true;
+          $("#buy_button").removeClass('disabled');     
+        }else{
+          $("#buy_button").addClass('disabled');
+          affordable = false;
+        }
+      }else{
+
+        if(<%= cash_on_hand %> <  <%= current_property_cost %>){
+          $("#buy_button").addClass('disabled');    
+          buttonDisabled = true;
+        }else{
+          $("#buy_button").removeClass('disabled');     
+          buttonDisabled = false;
+        }
+      }
+  }
+
+  function calculateNewSliderValue(){
+    var initial_selection;
+    var affordable = false;
+    if(!buyTrueSellFalse){ //we must have hit toggleSell button
+      var shares_available = <%= shares_available %>
+      shares_available = <%= shares_owned %>;
+      initial_selection = shares_available / 2;
+      var shares = initial_selection;
+      var current_property_cost;
+      var property_cost_per_share = <%= property_cost_per_share %>;
+      current_property_cost = property_cost_per_share * shares;
+      //var affordable = false;
+      var slider = document.getElementById("myRange");
+      if(slider == null)window.location.href = "/viewproperty/<%= results._id %>";
+      //alert(slider.value + ":" + shares_available);
+ 
+    }else{ //we must have hit toggleBuy button
+      var shares_available = 100 - <%= results.percent_owned %>;
+      initial_selection = shares_available / 2;
+      var shares = initial_selection;
+      var current_property_cost = <%= property_cost_per_share %> * shares;
+      var slider = document.getElementById("myRange");
+      if(slider == null)window.location.href = "/viewsellproperty/<%= results._id %>";
+        /*if(<%= property_cost_per_share %> <= <%= cash_on_hand %>){
+          affordable = true;
+        }else{
+          affordable = false;
+        }*/
+    }
+
+    var initial_selection = Math.round(initial_selection);
+
+    //change slider display values
+    var slider = document.getElementById("myRange");
+    //if(slider == null)window.location.href = "/viewsellproperty/<%= results._id %>";
+    output.innerHTML = initial_selection + "%"; // Display the default slider value
+    slider.max = shares_available;
+    slider.value = initial_selection;
+    //current_property_cost = property_cost_per_share * initial_selection;
+    daily_income = (current_property_cost * .1001) * 60;
+    daily_cost   = (current_property_cost * .1) * 60;
+    daily_profit = (daily_income - daily_cost) * 1;
+    $("#property_price_value").text(convertToMoney(current_property_cost));
+    $("#daily_income_value").text(convertToMoney(daily_income));
+    $("#daily_cost_value").text(convertToMoney(daily_cost));
+    $("#daily_profit_value").text(convertToMoney(daily_profit));
+  }
+
+  //called when document is loaded, sets up for buying or selling
+  $( document ).ready(function() {
+    //refreshBuySell();
+    refreshButtonsAndLabels();
+  }); 
   </script>
 
 </body>

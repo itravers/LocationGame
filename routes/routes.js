@@ -208,7 +208,7 @@ module.exports = function(app, passport){
         }
 
         results.property_cost = calculateCityValue(results);
-        res.render('viewproperty2.ejs', {
+        res.render('viewproperty.ejs', {
           title : "View " + results.city_name,
           user  : req.user,
           already_own : already_own,
@@ -228,7 +228,7 @@ module.exports = function(app, passport){
       Cities.findOne({_id: new ObjectId(propertyid)}, {}, function(err, results){
         if(err) throw err;
         results.property_cost = calculateCityValue(results);
-        res.render('viewproperty2.ejs', {
+        res.render('viewproperty.ejs', {
           title : "View " + results.city_name,
           user  : req.user,
           results : results,
