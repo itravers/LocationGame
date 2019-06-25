@@ -10,6 +10,18 @@ a {
   width: 50px;
 }
 
+#buy_or_sell_button{
+  display: inline;
+}
+
+#toggleBuy{
+  float: left;
+}
+
+#toggleSell{
+  float: right;
+}
+
 #portfolio_info{
   display: inline;
   color:gray;

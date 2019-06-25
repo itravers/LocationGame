@@ -208,11 +208,12 @@ module.exports = function(app, passport){
         }
 
         results.property_cost = calculateCityValue(results);
-        res.render('viewproperty.ejs', {
+        res.render('viewproperty2.ejs', {
           title : "View " + results.city_name,
           user  : req.user,
           already_own : already_own,
-          results : results
+          results : results,
+          buyTrueSellFalse: true
         });
       });
     }else{
@@ -227,10 +228,11 @@ module.exports = function(app, passport){
       Cities.findOne({_id: new ObjectId(propertyid)}, {}, function(err, results){
         if(err) throw err;
         results.property_cost = calculateCityValue(results);
-        res.render('sellproperty.ejs', {
+        res.render('viewproperty2.ejs', {
           title : "View " + results.city_name,
           user  : req.user,
-          results : results
+          results : results,
+          buyTrueSellFalse: false
         });
       });
     }else{
@@ -1187,7 +1189,7 @@ function doesUserOwnCity(user, city){
     }
   }
   //console.log("user.property.owned: " + user.property.owned );
-  console.log("does user own city: " + returnVal);
+  //console.log("does user own city: " + returnVal);
   return returnVal;
 }
 
