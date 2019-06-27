@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include partials/head %>
+</head>
+<body>
+<header>
+  <% include partials/header %>
+</header>
+
+<div id="cash_on_hand_text">Current Groupies: <span class="fa fa-diamond"></span><div id="num_groupies" class="display-inline"> <%= user.groupies %></div></div>
+<div id="cash_on_hand_text" class="error_text">Buy Items</div>
+
+<div class="list-group">
+  <a href="#" class="list-group-item list-group-item-action" onclick="buyItem('groupie', 10)"><span class="fa fa-diamond"></span> BUY 10 GROUPIES<span class="float-right">$0.99</span></a>
+  <a href="#" class="list-group-item list-group-item-action" onclick="buyItem('groupie', 100)"><span class="fa fa-diamond"></span> BUY 100 GROUPIES<span class="float-right">$2.99</span></a>
+  <a href="#" class="list-group-item list-group-item-action active" onclick="buyItem('groupie', 1000)" ><span class="fa fa-diamond"></span> BUY 1000 GROUPIES<span class="float-right">$9.99</span></a>
+  <a href="#" class="list-group-item list-group-item-action" onclick="buyItem('groupie', 5000)"><span class="fa fa-diamond"></span> BUY 5000 GROUPIES<span class="float-right">$19.99</span></a>
+</div>
+
+
+  <footer>
+    <% include partials/footer %>
+  </footer>
+  <script type="text/javascript">
+    function buyItem(itemName, numItems){
+      //alert("buyItem('"+itemName+"', " + numItems + ");");
+      $.ajax({
+            type: "POST",
+            url: "/store/buyitem/"+itemName+"/"+numItems,
+            success: function(data){
+              if(data.status == "error"){
+                //alert("Error: " + data.message);
+                $('.error_text').text("Error: " + data.message);
+              }else if(data.status == "success"){
+                //alert("Success: " + data.groupies);
+                $('.error_text').text("Success: " + data.message);
+                if(itemName == "groupie")$('#num_groupies').text(data.groupies);
+              }
+            },
+             error: function(err){
+             console.log("error submitting problem: " + err);
+             //alert(`err: ${JSON.stringify(err, undefined, 2)}`);
+             $('.error_text').text("Error Communicating With Server");
+            }
+       });
+    }
+  </script>
+
+</body>
+</html>

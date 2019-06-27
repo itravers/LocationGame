@@ -235,7 +235,7 @@
         if(cash_on_hand > current_property_cost){
             var propertyid = "<%= results._id %>";
             var shares = slider.value;
-            $.ajax({
+          $.ajax({
             type: "GET",
             url: "/buyproperty/"+propertyid+"/"+shares,
             success: function(data){
@@ -246,9 +246,9 @@
                 window.location.replace("/portfolio/<%= userID %>");
               }
             },
-            error: function(err){
-              console.log("error submitting problem: " + err);
-              alert(`err: ${JSON.stringify(err, undefined, 2)}`);
+             error: function(err){
+             console.log("error submitting problem: " + err);
+             alert(`err: ${JSON.stringify(err, undefined, 2)}`);
             }
           });
         }else{

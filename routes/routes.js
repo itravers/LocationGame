@@ -73,6 +73,48 @@ module.exports = function(app, passport){
     res.redirect('/console');
   });
 
+  //this is the store, where the user can make in game purchases
+  app.get('/store', function(req, res){
+    if(req.user){
+      res.render('store.ejs', {
+        title : "Store",
+        user : req.user
+      });
+    }else{
+      res.redirect('/login');
+    }
+  });
+  
+  //this is the user trying to buy an item from the store
+  app.post('/store/buyitem/:itemName/:numItems', function(req, res){ 
+    if(req.user){
+      var itemName = req.params.itemName;
+      var numItems = parseInt(req.params.numItems);
+      console.log(req.user.company_name + " buying " + numItems + " " + itemName);
+      
+      //right here is where we will use an api to buy a product through
+      //an app store
+
+      //but for now we will say it is a success
+      var purchaseSuccess = true;
+      if(isNaN(numItems)) purchaseSuccess = false;
+
+      if(purchaseSuccess){
+        req.user.groupies += numItems;
+        req.user.save();
+
+      
+
+        res.send({status: "success", message: "You Purchased: " + numItems + " " + itemName, groupies: req.user.groupies});
+      }else{
+        res.send({status: "error", message: "Your Purchase did NOT go through!"});
+      }
+
+    }else{
+      res.send({status: "error", message: "User Not Signed In!"});
+    }
+  });
+
   //this is the main user console
   app.get('/console', function(req, res){
     //console.log("called /console");
