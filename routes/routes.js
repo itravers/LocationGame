@@ -84,7 +84,32 @@ module.exports = function(app, passport){
       res.redirect('/login');
     }
   });
-  
+ 
+  //this is the user trying to incrementCashOnHandLimitBonus
+  //which is the bonus that increases the amount of 
+  //cash a user can have on hand at one time.
+  app.post('/store/incrementcashonhandlimitbonus', function(req, res){
+    if(req.user){
+      if(req.user.groupies >= 20){
+        req.user.groupies -= 20;
+        req.user.cash_on_hand_bonus_limit += .01;
+        req.user.save();
+        var cash_on_hand_limit = calculateCashOnHandLimit(req.user.level, req.user.cash_on_hand_bonus_limit);
+        res.send({
+           status: "success",
+           message: "You Purchased Incremented Your Cash Limit",
+           groupies: req.user.groupies,
+           newLimit: req.user.cash_on_hand_bonus_limit,
+           cash_on_hand_limit: cash_on_hand_limit
+        });
+      }else{
+        res.send({status: "error", message: "You do not have 20 groupies!"});
+      }
+    }else{
+      res.send({status: "error", message: "User Not Signed In!"});
+    }
+  });
+ 
   //this is the user trying to buy an item from the store
   app.post('/store/buyitem/:itemName/:numItems', function(req, res){ 
     if(req.user){
@@ -126,7 +151,7 @@ module.exports = function(app, passport){
       req.user.company_value = req.user.portfolio_value + req.user.cash_on_hand + req.user.cash_tied_up;
       req.user.level = calculateLevel(req.user.portfolio_value);
       req.user.portfolio_next_value = calculateNextPortfolioValue(req.user.level);
-      req.user.cash_on_hand_limit = calculateCashOnHandLimit(req.user.level);
+      req.user.cash_on_hand_limit = calculateCashOnHandLimit(req.user.level, req.user.cash_on_hand_bonus_limit);
       req.user.save();
       res.render('console.ejs', {
         title : "Console",
@@ -155,7 +180,7 @@ module.exports = function(app, passport){
           userR.company_value = userR.portfolio_value + userR.cash_on_hand + userR.cash_tied_up;
           userR.level = calculateLevel(userR.portfolio_value);
           userR.portfolio_next_value = calculateNextPortfolioValue(userR.level);
-          userR.cash_on_hand_limit = calculateCashOnHandLimit(userR.level);
+          userR.cash_on_hand_limit = calculateCashOnHandLimit(userR.level, userR.cash_on_hand_bonus_limit);
           userR.save();
           res.render('console.ejs', {
             title : "Console",
@@ -1152,7 +1177,7 @@ function calculateValue(node){
 
 
 //returns the company_value needed to get to the next level
-function calculateCashOnHandLimit(level){
+function calculateCashOnHandLimit(level, cash_on_hand_bonus_limit){
   var divisor = 1;
   if(level < 2){ 
     divisor = 1;
@@ -1164,6 +1189,8 @@ function calculateCashOnHandLimit(level){
     divisor = 5;
   }
   var nextValue = calculateNextPortfolioValue(level) / divisor;
+  nextValue += nextValue * cash_on_hand_bonus_limit;
+  //now we factor in the bonus percentage
   return nextValue;
 }
 

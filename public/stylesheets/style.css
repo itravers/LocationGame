@@ -14,6 +14,12 @@ a {
   display:inline;
 }
 
+#num_groupies{
+  font-size: 25px;
+  font-weight: bolder;
+  color: black;
+}
+
 .wide_span{
   width: 50px;
 }

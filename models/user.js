@@ -55,6 +55,7 @@ var userSchema = mongoose.Schema({
     },
     portfolio_value  : {type: Number, default: 0},
     cash_on_hand     : {type: Number, default: 100},
+    cash_on_hand_bonus_limit : {type: Number, default: 0},
     cash_tied_up     : {type: Number, default: 0},
     level            : {type: Number, default: 0},
     groupies         : {type: Number, default: 0},

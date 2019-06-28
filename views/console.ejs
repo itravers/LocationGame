@@ -45,7 +45,9 @@
    
   var cash_on_hand_limit = userR.cash_on_hand_limit;
   cash_on_hand_limit = convertToMoney(cash_on_hand_limit);
-  
+ 
+  var cash_on_hand_bonus_limit = userR.cash_on_hand_bonus_limit; 
+ 
   var portfolio_pct = (userR.portfolio_value / userR.portfolio_next_value) * 100;
   var cash_on_hand_pct = (userR.cash_on_hand / userR.cash_on_hand_limit) * 100;  
 
@@ -100,7 +102,7 @@
   </div>
   <span class="fa-stack fa-2x" id="user_level_label">
     <i class="fa fa-circle-o fa-stack-2x"></i>
-    <strong class="fa-stack-1x">+</strong>
+    <a href="#"><strong class="fa-stack-1x" onclick="incrementCashOnHandLimitBonus()">+</strong></a>
   </span>
   <div class="progress container col-sm-10 company_slider">
     <div class="progress-bar" role="progressbar" style="width: <%= cash_on_hand_pct %>%;" aria-valuenow="<%= cash_on_hand_pct %>" aria-valuemin="0" aria-valuemax="100">
@@ -108,7 +110,7 @@
       <div class="company_slider_text"><%= cash_on_hand %></div>
   </div>
   <div class="container" id="next_level_label">
-    Limit <%= cash_on_hand_limit %>
+    Limit <div id="cash_on_hand_limit" class="display-inline"><%= cash_on_hand_limit %></div> + <div id="cash_on_hand_bonus_percentage" class="display-inline"><%= parseInt(cash_on_hand_bonus_limit*100) %>%</div>
   </div>
 
   <div class="container" id="cashtied_label">
@@ -169,7 +171,7 @@
         <div class="card">
           <div class="card-body">
             <h5 class="card-title">Groupies Balance</h5>
-            <p class="card-text" id="coin_balance_value"><%= groupies %><span class="fa fa-diamond"></span>
+            <p class="card-text" id="coin_balance_value"><div id="num_groupies" class="display-inline"><%= groupies %></div><span class="fa fa-diamond display-inline"></span>
 </p>
           </div>
         </div>
@@ -201,6 +203,49 @@
     <% include partials/footer %><p class="text-center text-muted"><%= ticks %></p>
     <p class="text-center text-muted">Version: <%= version %> </p>
   </footer>
+  
+  <script type="text/javascript">
+    function incrementCashOnHandLimitBonus(){
+       $.ajax({
+            type: "POST",
+            url: "/store/incrementcashonhandlimitbonus",
+            success: function(data){
+              if(data.status == "error"){
+                alert("Error: " + data.message);
+                //$('.error_text').text("Error: " + data.message);
+              }else if(data.status == "success"){
+                //alert("Success: " + data.groupies);
+                //$('.error_text').text("Success: " + data.message);
+                $('#num_groupies').text(data.groupies);
+                var limit = parseInt(data.newLimit*100);
+                var limit_string = limit.toString(10) + "%";
+                $('#cash_on_hand_bonus_percentage').text(limit_string);
+                $('#cash_on_hand_limit').text(convertToMoney(data.cash_on_hand_limit));
+                
+              }
+            },
+             error: function(err){
+             console.log("error submitting problem: " + err);
+             alert(`err: ${JSON.stringify(err, undefined, 2)}`);
+             //$('.error_text').text("Error Communicating With Server");
+            }
+       });
+
+    }   
+
+    function convertToMoney(number){
+      if(number ==0) return "$0.00";
+      var decimals = 3;
+      if(number < 1000) decimals = 0;
+      var money = (number).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+      money = (money).substring(0, money.length - decimals);
+      money = "$"+money;
+      return money;
+    }
+
+
+  </script>
+
 
 </body>
 </html>
