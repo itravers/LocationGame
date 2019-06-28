@@ -13,6 +13,7 @@
   var ticks = ticks;
   console.log("ticks: " + ticks);
   if(userR == null) userR = user;
+  var userID = userR._id;
   var company_value = userR.company_value;
   //console.log("companyvaluefront: " + company_value);
   company_value = convertToMoney(company_value); 
@@ -208,7 +209,7 @@
     function incrementCashOnHandLimitBonus(){
        $.ajax({
             type: "POST",
-            url: "/store/incrementcashonhandlimitbonus",
+            url: "/store/incrementcashonhandlimitbonus/<%= userID %>",
             success: function(data){
               if(data.status == "error"){
                 alert("Error: " + data.message);

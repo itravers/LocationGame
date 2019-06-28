@@ -88,23 +88,31 @@ module.exports = function(app, passport){
   //this is the user trying to incrementCashOnHandLimitBonus
   //which is the bonus that increases the amount of 
   //cash a user can have on hand at one time.
-  app.post('/store/incrementcashonhandlimitbonus', function(req, res){
+  app.post('/store/incrementcashonhandlimitbonus/:userID', function(req, res){
     if(req.user){
-      if(req.user.groupies >= 20){
-        req.user.groupies -= 20;
-        req.user.cash_on_hand_bonus_limit += .01;
-        req.user.save();
-        var cash_on_hand_limit = calculateCashOnHandLimit(req.user.level, req.user.cash_on_hand_bonus_limit);
-        res.send({
-           status: "success",
-           message: "You Purchased Incremented Your Cash Limit",
-           groupies: req.user.groupies,
-           newLimit: req.user.cash_on_hand_bonus_limit,
-           cash_on_hand_limit: cash_on_hand_limit
-        });
-      }else{
-        res.send({status: "error", message: "You do not have 20 groupies!"});
-      }
+      var userID = req.params.userID;
+      Users.findOne({_id: new ObjectId(userID)}, {}, function(err, userR){
+        if(err || !userR){
+           res.send({status: "error", message: "User Not Found!"});
+           return;
+        }
+        if(req.user.groupies >= 20){
+          req.user.groupies -= 20;
+          userR.cash_on_hand_bonus_limit += .01;
+          req.user.save();
+          userR.save();
+          var cash_on_hand_limit = calculateCashOnHandLimit(userR.level, userR.cash_on_hand_bonus_limit);
+          res.send({
+             status: "success",
+             message: "You Purchased Incremented Your Cash Limit",
+             groupies: userR.groupies,
+             newLimit: userR.cash_on_hand_bonus_limit,
+             cash_on_hand_limit: cash_on_hand_limit
+          });
+        }else{
+          res.send({status: "error", message: "You do not have 20 groupies!"});
+        }
+      });
     }else{
       res.send({status: "error", message: "User Not Signed In!"});
     }
@@ -1374,7 +1382,7 @@ function timeStep(numSteps, currentStep = 0){
                   //to make sure our cash on hand isn't going to go over the limit.
                   var level = allusers[i].level;
                   var cashOnHand = allusers[i].cash_on_hand;
-                  var cashLimit = calculateCashOnHandLimit(level);
+                  var cashLimit = calculateCashOnHandLimit(level, allusers[i].cash_on_hand_bonus_limit);
                   if((cashOnHand + cash_earned) <= cashLimit ){
                     allusers[i].property.owned[j].total_earned += cash_earned;
                     allusers[i].cash_on_hand += cash_earned;
